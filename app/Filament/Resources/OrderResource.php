@@ -13,10 +13,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OrderResource extends Resource
@@ -29,182 +32,187 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Grid::make(1)->schema([
-                    Section::make('Discount (%), Fee, and Tip')->collapsible()->schema([
-                        TextInput::make('discount_percentage')
-                            ->label('Discount (%)')
+                Grid::make(5)->schema([
+                    Section::make('Promo, Fee, and Tip')->schema([
+                        TextInput::make('promo')
+                            ->label('Promo')
                             ->numeric()
                             ->default(100)
                             ->required()
-                            ->suffix('%')
+                            ->suffix('%', true)
                             ->minValue(0)
                             ->maxValue(100)
                             ->extraInputAttributes(['min' => 0, 'max' => 100])
-                            ->columnSpan(2)
+                            ->columnSpan(['xl' => 2, 'md' => 3, 'default' => 6])
+                            ->live()
                             ->afterStateUpdated(function (Get $get, Set $set) {
-                                $this->triggerTotalBill($get, $set);
+                                $class = new OrderResource();
+                                $class->triggerTotalBill($get, $set);
+                                $class->triggerDiscountPercentage($get, $set);
                             }),
                         TextInput::make('order_fee')
                             ->label('Order Fee')
                             ->numeric()
                             ->placeholder('0')
                             ->required()
-                            ->prefix('Rp. ')
+                            ->prefix('Rp. ', true)
                             ->autofocus()
                             ->minValue(0)
                             ->currencyMask('.', ',', 0)
-                            ->columnSpan(4)
+                            ->columnSpan(['md' => 2, 'default' => 6])
                             ->live()
                             ->afterStateUpdated(function (Get $get, Set $set) {
-                                $this->triggerTotalFee($get, $set);
+                                $class = new OrderResource();
+                                $class->triggerTotalFee($get, $set);
                             }),
                         TextInput::make('delivery_fee')
                             ->label('Delivery fee')
                             ->numeric()
                             ->placeholder('0')
                             ->default(null)
-                            ->prefix('Rp. ')
+                            ->prefix('Rp. ', true)
                             ->currencyMask('.', ',', 0)
                             ->minValue(0)
-                            ->columnSpan(3)
+                            ->columnSpan(['md' => 2, 'default' => 6])
                             ->live()
                             ->afterStateUpdated(function (Get $get, Set $set) {
-                                $this->triggerTotalFee($get, $set);
+                                $class = new OrderResource();
+                                $class->triggerTotalFee($get, $set);
                             }),
                         TextInput::make('tip')
                             ->label('Tip')
                             ->numeric()
                             ->placeholder('0')
-                            ->prefix('Rp. ')
+                            ->prefix('Rp. ', true)
                             ->currencyMask('.', ',', 0)
                             ->minValue(0)
-                            ->columnSpan(3)
+                            ->columnSpan(['md' => 2, 'default' => 6])
                             ->live()
                             ->afterStateUpdated(function (Get $get, Set $set) {
-                                $this->triggerTotalFee($get, $set);
+                                $class = new OrderResource();
+                                $class->triggerTotalFee($get, $set);
                             }),
                         TextInput::make('total_fee')
                             ->label('Total Fee')
+                            ->required()
                             ->numeric()
-                            ->columnSpan(3)
                             ->placeholder('0')
-                            ->prefix('Rp. ')
+                            ->prefix('Rp. ', true)
                             ->currencyMask('.', ',', 0)
-                            ->columnSpan(4)
+                            ->columnSpan(['xl' => 4, 'md' => 3, 'default' => 6])
                             ->readOnly(),
-                    ])->columns(6)->columnSpanFull(),
 
-                    Section::make('Discount')->collapsible()->schema([
+                    ])
+                        ->collapsible()
+                        ->columns(6)
+                        ->columnSpan(['xl' => 3, 'md' => 5]),
+
+                    Section::make('Discount')->schema([
                         TextInput::make('discount')
                             ->label('Discount')
                             ->placeholder('0')
                             ->numeric()
-                            ->prefix('Rp. ')
+                            ->prefix('Rp. ', true)
                             ->columnSpan(4)
                             ->currencyMask('.', ',', 0)
                             ->live()
                             ->afterStateUpdated(function (Get $get, Set $set) {
-                                $bill_before_discount = intval($get('total_bill_real')) ?? 0;
-                                $discount = $get('discount');
-                                $set('discount_percent', $discount > 0 ? $bill_before_discount / $discount : 0);
+                                $class = new OrderResource();
+                                $class->triggerDiscountPercentage($get, $set);
                             }),
                         TextInput::make('discount_percent')
                             ->label('Percentage')
                             ->default('0')
                             ->numeric()
-                            ->suffix('%')
+                            ->suffix('%', true)
                             ->readOnly()
-                            ->columnSpan(2)
-                            ->currencyMask('.', ','),
+                            ->columnSpan(['xl' => 2, 'md' => 2, 'default' => 4]),
                         TextInput::make('additional_discount')
                             ->label('Additional Discount')
                             ->placeholder('0')
                             ->numeric()
-                            ->prefix('Rp. ')
+                            ->prefix('Rp. ', true)
                             ->columnSpan(4)
                             ->currencyMask('.', ',', 0)
                             ->live()
                             ->afterStateUpdated(function (Get $get, Set $set) {
-                                $bill_before_discount = intval($get('total_bill_real')) ?? 0;
-                                $discount = $get('discount');
-                                $set('additional_discount_percent', $discount > 0 ? $bill_before_discount / $discount : 0);
+                                $class = new OrderResource();
+                                $class->triggerAdditionalDiscountPercentage($get, $set);
                             }),
                         TextInput::make('additional_discount_percent')
                             ->label('Percentage')
                             ->default('0')
                             ->numeric()
-                            ->suffix('%')
+                            ->suffix('%', true)
                             ->readOnly()
-                            ->columnSpan(2)
-                            ->currencyMask('.', ','),
-                    ])->columns(6)->columnSpanFull(),
-                ])->columnSpan(['xl' => 2, 'md' => 5]),
+                            ->columnSpan(['xl' => 2, 'md' => 2, 'default' => 4]),
+                    ])
+                        ->collapsible()
+                        ->columns(6)
+                        ->columnSpan(['xl' => 2, 'md' => 5]),
+                ]),
 
-                Grid::make(1)->schema([
-                    Section::make('Bill')->collapsible()->schema([
-                        Split::make([
-                            TextInput::make('bill_real')
-                                ->label('Total Bill')
-                                ->required()
-                                ->default(0)
-                                ->numeric()
-                                ->readOnly()
-                                ->prefix('Rp. ')
-                                ->currencyMask('.', ','),
-                            TextInput::make('bill_by_discount_percentage')
-                                ->label('Total Bill By Discount (%)')
-                                ->required()
-                                ->default(0)
-                                ->numeric()
-                                ->readOnly()
-                                ->prefix('Rp. ')
-                                ->currencyMask('.', ','),
-                        ]),
-                        TextInput::make('bill_final')
-                            ->label('Sub Total')
+                Section::make('Order List')->schema([
+                    Split::make([
+                        TextInput::make('total')
+                            ->label('Total')
                             ->required()
                             ->default(0)
                             ->numeric()
                             ->readOnly()
-                            ->prefix('Rp. ')
+                            ->prefix('Rp. ', true)
+                            ->currencyMask('.', ','),
+                        TextInput::make('total_with_promo')
+                            ->label('Total With Discount (%)')
+                            ->required()
+                            ->default(0)
+                            ->numeric()
+                            ->readOnly()
+                            ->prefix('Rp. ', true)
                             ->currencyMask('.', ','),
                     ]),
-                    Section::make('Order List')->collapsible()->schema([
-                        TableRepeater::make('order_list')->hiddenLabel()
-                            ->headers([
-                                Header::make('name'),
-                                Header::make('price')->width('250px'),
-                            ])
-                            ->schema([
-                                TextInput::make('name')
-                                    ->label('Name')
-                                    ->string()
-                                    ->required()
-                                    ->placeholder('Product Name')
-                                    ->maxLength(255)
-                                    ->columnSpan(1),
-                                TextInput::make('price')
-                                    ->label('Price')
-                                    ->numeric()
-                                    ->required()
-                                    ->placeholder(0)
-                                    ->columnSpan(1)
-                                    ->prefix('Rp. ')
-                                    ->currencyMask('.', ','),
-                            ])->afterStateUpdated(function (Get $get, Set $set) {
-                                $this->triggerTotalBill($get, $set);
-                            })->live()
-                    ]),
-                ])->columnSpan(['xl' => 3, 'md' => 5]),
 
-            ])->columns(5);
+                    TableRepeater::make('order_list')
+                        ->hiddenLabel()
+                        ->relationship('details')
+                        ->live()
+                        ->headers([
+                            Header::make('name')->markAsRequired(),
+                            Header::make('price')->markAsRequired(),
+                        ])
+                        ->schema([
+                            TextInput::make('name')
+                                ->label('Name')
+                                ->string()
+                                ->required()
+                                ->placeholder('Product Name')
+                                ->maxLength(255)
+                                ->columnSpan(1),
+                            TextInput::make('price')
+                                ->label('Price')
+                                ->numeric()
+                                ->required()
+                                ->placeholder(0)
+                                ->columnSpan(1)
+                                ->prefix('Rp. ', true)
+                                ->currencyMask('.', ','),
+                        ])->afterStateUpdated(function (Get $get, Set $set) {
+                            $class = new OrderResource();
+                            $class->triggerTotalBill($get, $set);
+                            $class->triggerAdditionalDiscountPercentage($get, $set);
+                            $class->triggerDiscountPercentage($get, $set);
+                        })
+                ])
+                    ->collapsible()
+
+            ])->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('author.name')
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -219,7 +227,47 @@ class OrderResource extends Resource
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->recordUrl(fn (Model $record): string => Pages\ViewOrder::getUrl([$record->id]));
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            \Filament\Infolists\Components\Section::make('Order Data')->schema([
+                \Filament\Infolists\Components\Grid::make()->schema([
+                    TextEntry::make('promo')
+                        ->label('Discount (%)')
+                        ->suffix('%')
+                        ->columnSpan(1),
+                    TextEntry::make('order_fee')
+                        ->label('Order Fee')
+                        ->money('Rp. ', 0, 'id')
+                        ->columnSpan(1),
+                    TextEntry::make('delivery_fee')
+                        ->label('Delivery fee')
+                        ->money('Rp. ', 0, 'id')
+                        ->columnSpan(1),
+                    TextEntry::make('tip')
+                        ->label('Tip')
+                        ->money('Rp. ', 0, 'id')
+                        ->columnSpan(1),
+                    TextEntry::make('total_fee')
+                        ->label('Total Fee')
+                        ->money('Rp. ', 0, 'id')
+                        ->columnSpanFull(),
+                ])->columnSpan(2),
+
+                \Filament\Infolists\Components\Grid::make()->schema([
+                    TextEntry::make('discountWithPercentage')
+                        ->label('Discount')
+                        ->columnSpan(1),
+                    TextEntry::make('additionalDiscountWithPercentage')
+                        ->label('Additional Discount')
+                        ->columnSpan(1),
+                ])->columnSpan(1)->columns(1)
+            ])->columns(3)
+        ]);
     }
 
     public static function getRelations(): array
@@ -252,17 +300,17 @@ class OrderResource extends Resource
      * @param Set $set
      * @return void
      */
-    function triggerTotalBill(Get $get, Set $set): void
+    private function triggerTotalBill(Get $get, Set $set): void
     {
-        $discount_percentage = intval($get('discount_percentage'));
+        $promo = (int)$get('promo');
         $prices = [];
         $prices_with_discount = [];
         foreach ($get('order_list') as $order) {
-            $prices[] = intval($order['price']);
-            $prices_with_discount[] = intval($order['price']) * $discount_percentage;
+            $prices[] = (int)$order['price'];
+            $prices_with_discount[] = (int)$order['price'] * $promo / 100;
         }
-        $set('bill_real', array_sum($prices));
-        $set('bill_by_discount_percentage', array_sum($prices_with_discount));
+        $set('total', ceil(array_sum($prices)));
+        $set('total_with_promo', ceil(array_sum($prices_with_discount)));
     }
 
     /**
@@ -270,11 +318,40 @@ class OrderResource extends Resource
      * @param Set $set
      * @return void
      */
-    function triggerTotalFee(Get $get, Set $set): void
+    private function triggerTotalFee(Get $get, Set $set): void
     {
-        $order_fee = intval($get('order_fee'));
-        $delivery_fee = intval($get('delivery_fee'));
-        $tip = intval($get('tip'));
+        $order_fee = (int)$get('order_fee');
+        $delivery_fee = (int)$get('delivery_fee');
+        $tip = (int)$get('tip');
         $set('total_fee', array_sum([$order_fee, $delivery_fee, $tip]));
+    }
+
+    /**
+     * @param Get $get
+     * @param Set $set
+     * @return void
+     */
+    private function triggerAdditionalDiscountPercentage(Get $get, Set $set): void
+    {
+        $bill_before_discount = (int)($get('total') ?? 0);
+        $additional_discount = $get('additional_discount');
+        if ($additional_discount > 0 && $bill_before_discount)
+            $set('additional_discount_percent',
+                ceil($additional_discount / $bill_before_discount * 100));
+    }
+
+    /**
+     * @param Get $get
+     * @param Set $set
+     * @return void
+     */
+    private function triggerDiscountPercentage(Get $get, Set $set): void
+    {
+        $total_with_promo = (int)($get('total_with_promo') ?? 0);
+        $discount = (int)($get('discount') ?? 0);
+        if ($discount > 0 && $total_with_promo > 0) {
+            $set('discount_percent',
+                ceil($discount / $total_with_promo * 100));
+        }
     }
 }

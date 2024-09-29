@@ -12,16 +12,20 @@ return new class extends Migration {
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->integer('discount_percentage')->default(100);
+            $table->integer('promo')->default(100);
             $table->integer('order_fee')->default(0);
             $table->integer('delivery_fee')->default(0);
             $table->integer('tip')->default(0);
             $table->integer('total_fee')->default(0);
             $table->integer('discount')->default(0);
+            $table->integer('discount_percent')->default(0);
             $table->integer('additional_discount')->default(0);
-            $table->integer('bill_real')->default(0);
-            $table->integer('bill_by_discount_percentage')->default(0);
-            $table->integer('bill_final')->default(0);
+            $table->integer('additional_discount_percent')->default(0);
+            $table->integer('total')->default(0);
+            $table->integer('total_with_promo')->default(0);
+            $table->integer('total_items')->default(0);
+            $table->foreignId('author_id')->references('id')->on('users')
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });
