@@ -13,8 +13,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -54,7 +52,6 @@ class OrderResource extends Resource
                             ->label('Order Fee')
                             ->numeric()
                             ->placeholder('0')
-                            ->required()
                             ->prefix('Rp. ', true)
                             ->autofocus()
                             ->minValue(0)
@@ -228,47 +225,9 @@ class OrderResource extends Resource
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ])
-            ->recordUrl(fn (Model $record): string => Pages\ViewOrder::getUrl([$record->id]));
+            ->recordUrl(fn(Model $record): string => Pages\ViewOrder::getUrl([$record->id]));
     }
 
-    public static function infolist(Infolist $infolist): Infolist
-    {
-        return $infolist->schema([
-            \Filament\Infolists\Components\Section::make('Order Data')->schema([
-                \Filament\Infolists\Components\Grid::make()->schema([
-                    TextEntry::make('promo')
-                        ->label('Discount (%)')
-                        ->suffix('%')
-                        ->columnSpan(1),
-                    TextEntry::make('order_fee')
-                        ->label('Order Fee')
-                        ->money('Rp. ', 0, 'id')
-                        ->columnSpan(1),
-                    TextEntry::make('delivery_fee')
-                        ->label('Delivery fee')
-                        ->money('Rp. ', 0, 'id')
-                        ->columnSpan(1),
-                    TextEntry::make('tip')
-                        ->label('Tip')
-                        ->money('Rp. ', 0, 'id')
-                        ->columnSpan(1),
-                    TextEntry::make('total_fee')
-                        ->label('Total Fee')
-                        ->money('Rp. ', 0, 'id')
-                        ->columnSpanFull(),
-                ])->columnSpan(2),
-
-                \Filament\Infolists\Components\Grid::make()->schema([
-                    TextEntry::make('discountWithPercentage')
-                        ->label('Discount')
-                        ->columnSpan(1),
-                    TextEntry::make('additionalDiscountWithPercentage')
-                        ->label('Additional Discount')
-                        ->columnSpan(1),
-                ])->columnSpan(1)->columns(1)
-            ])->columns(3)
-        ]);
-    }
 
     public static function getRelations(): array
     {
@@ -336,8 +295,10 @@ class OrderResource extends Resource
         $bill_before_discount = (int)($get('total') ?? 0);
         $additional_discount = $get('additional_discount');
         if ($additional_discount > 0 && $bill_before_discount)
-            $set('additional_discount_percent',
-                ceil($additional_discount / $bill_before_discount * 100));
+            $set(
+                'additional_discount_percent',
+                ceil($additional_discount / $bill_before_discount * 100)
+            );
     }
 
     /**
@@ -350,8 +311,10 @@ class OrderResource extends Resource
         $total_with_promo = (int)($get('total_with_promo') ?? 0);
         $discount = (int)($get('discount') ?? 0);
         if ($discount > 0 && $total_with_promo > 0) {
-            $set('discount_percent',
-                ceil($discount / $total_with_promo * 100));
+            $set(
+                'discount_percent',
+                ceil($discount / $total_with_promo * 100)
+            );
         }
     }
 }

@@ -27,14 +27,15 @@ class CreateOrder extends CreateRecord
         $total_with_promo = (int)$data['total_with_promo'] ?? 0;
 
         $data = [
-            ...$data,
             'promo' => (int)$data['promo'] ?? 100,
-            'total_fee' => (int)array_sum([$order_fee, $delivery_fee, $tip]),
+            'order_fee' => $order_fee,
+            'delivery_fee' => $delivery_fee,
             'tip' => $tip,
+            'total_fee' => array_sum([$order_fee, $delivery_fee, $tip]),
             'discount' => $discount,
-            'discount_percent' => (int)(ceil($discount / $total_with_promo * 100)),
+            'discount_percent' => ceil($discount / $total_with_promo * 100),
             'additional_discount' => $additional_discount,
-            'additional_discount_percent' => (int)ceil($additional_discount / $total * 100),
+            'additional_discount_percent' => ceil($additional_discount / $total * 100),
             'total' => $total,
             'total_with_promo' => $total_with_promo,
             'total_items' => count($data['order_list']),
@@ -45,6 +46,4 @@ class CreateOrder extends CreateRecord
 
         return parent::handleRecordCreation($data);
     }
-
-
 }

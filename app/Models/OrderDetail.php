@@ -24,12 +24,12 @@ class OrderDetail extends Model
             $price = (int)$callback->price;
 
             $discount_by_percentage = $price * $order->promo / 100;
-            $discount = $discount_by_percentage * $order->discount_percent / 100;
-            $additional_discount = $price * $order->additional_discount_percent / 100;
+            $discount = $discount_by_percentage * $order->discount / $order->total_with_promo;
+            $additional_discount = $price * $order->additional_discount / $order->total;
 
-            $price_after_discount = $order->total_with_promo > $order->discount
-                ? $price - ($discount + $order->discount)
-                : $price - ($discount + $order->discount_by_percentage);
+            $price_after_discount = $order->total_with_promo > $order->discout
+                ? $price - ($discount + $additional_discount)
+                : $price - ($discount_by_percentage + $additional_discount);
 
             $fee = $order->total_fee / $order->total_items;
             $final_price = $price_after_discount + $fee;
