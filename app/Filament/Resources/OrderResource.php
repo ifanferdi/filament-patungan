@@ -6,6 +6,7 @@ use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Awcodes\TableRepeater\Header;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Split;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Illuminate\Support\Str;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -30,6 +32,21 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
+                Split::make([
+                    TextInput::make('name')
+                        ->label('Order Name')
+                        ->required()
+                        ->placeholder('Example: Roscik')
+                        ->maxLength(255)
+                        ->columnSpan(1),
+                    DatePicker::make('date')
+                        ->native(false)
+                        ->label(__('custom.order_date'))
+                        ->displayFormat('d mm Y')
+                        ->default(now())
+                        ->required()
+                        ->columnSpan(1)
+                ]),
                 Grid::make(5)->schema([
                     Section::make('Promo, Fee, and Tip')->schema([
                         TextInput::make('promo')
@@ -91,7 +108,6 @@ class OrderResource extends Resource
                             }),
                         TextInput::make('total_fee')
                             ->label('Total Fee')
-                            ->required()
                             ->numeric()
                             ->placeholder('0')
                             ->prefix('Rp. ', true)
@@ -209,14 +225,31 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
+                // Tables\Columns\TextColumn::make('name')
+                // Tables\Columns\TextColumn::make('date')
+                //     ->label(__('custom.date'))
+                //     ->date('Y-m-d'),
                 Tables\Columns\TextColumn::make('author.name')
+                    ->label(__('custom.author'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('details_count')
+                    ->label(__('custom.total_products'))
+                    ->counts('details')
+                    ->suffix(' ' . Str::lower(__('custom.item'))),
+                Tables\Columns\TextColumn::make('details_sum_final_price')
+                    ->label(__('custom.custom.final_price'))
+                    ->sum('details', 'final_price')
+                    ->money('IDR', locale: 'id')
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
