@@ -6,6 +6,7 @@ use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Awcodes\TableRepeater\Header;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Split;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Illuminate\Support\Str;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -30,10 +32,25 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
+                Split::make([
+                    TextInput::make('name')
+                        ->label(__('custom.order_name'))
+                        ->required()
+                        ->placeholder(__('custom.example').': Roscik')
+                        ->maxLength(255)
+                        ->columnSpan(1),
+                    DatePicker::make('date')
+                        ->native(false)
+                        ->label(__('custom.order_date'))
+                        ->displayFormat('d mm Y')
+                        ->default(now())
+                        ->required()
+                        ->columnSpan(1)
+                ]),
                 Grid::make(5)->schema([
                     Section::make('Promo, Fee, and Tip')->schema([
                         TextInput::make('promo')
-                            ->label('Promo')
+                            ->label(__('custom.promo'))
                             ->numeric()
                             ->default(100)
                             ->required()
@@ -49,7 +66,7 @@ class OrderResource extends Resource
                                 $class->triggerDiscountPercentage($get, $set);
                             }),
                         TextInput::make('order_fee')
-                            ->label('Order Fee')
+                            ->label(__('custom.order_fee'))
                             ->numeric()
                             ->placeholder('0')
                             ->prefix('Rp. ', true)
@@ -63,7 +80,7 @@ class OrderResource extends Resource
                                 $class->triggerTotalFee($get, $set);
                             }),
                         TextInput::make('delivery_fee')
-                            ->label('Delivery fee')
+                            ->label(__('custom.delivery_fee'))
                             ->numeric()
                             ->placeholder('0')
                             ->default(null)
@@ -77,7 +94,7 @@ class OrderResource extends Resource
                                 $class->triggerTotalFee($get, $set);
                             }),
                         TextInput::make('tip')
-                            ->label('Tip')
+                            ->label(__('custom.tip'))
                             ->numeric()
                             ->placeholder('0')
                             ->prefix('Rp. ', true)
@@ -90,8 +107,7 @@ class OrderResource extends Resource
                                 $class->triggerTotalFee($get, $set);
                             }),
                         TextInput::make('total_fee')
-                            ->label('Total Fee')
-                            ->required()
+                            ->label(__('custom.total_fee'))
                             ->numeric()
                             ->placeholder('0')
                             ->prefix('Rp. ', true)
@@ -106,7 +122,7 @@ class OrderResource extends Resource
 
                     Section::make('Discount')->schema([
                         TextInput::make('discount')
-                            ->label('Discount')
+                            ->label(__('custom.discount'))
                             ->placeholder('0')
                             ->numeric()
                             ->prefix('Rp. ', true)
@@ -118,14 +134,14 @@ class OrderResource extends Resource
                                 $class->triggerDiscountPercentage($get, $set);
                             }),
                         TextInput::make('discount_percent')
-                            ->label('Percentage')
+                            ->label(__('custom.percentage'))
                             ->default('0')
                             ->numeric()
                             ->suffix('%', true)
                             ->readOnly()
                             ->columnSpan(['xl' => 2, 'md' => 2, 'default' => 4]),
                         TextInput::make('additional_discount')
-                            ->label('Additional Discount')
+                            ->label(__('custom.additional_discount'))
                             ->placeholder('0')
                             ->numeric()
                             ->prefix('Rp. ', true)
@@ -137,7 +153,7 @@ class OrderResource extends Resource
                                 $class->triggerAdditionalDiscountPercentage($get, $set);
                             }),
                         TextInput::make('additional_discount_percent')
-                            ->label('Percentage')
+                            ->label(__('custom.percentage'))
                             ->default('0')
                             ->numeric()
                             ->suffix('%', true)
@@ -152,7 +168,7 @@ class OrderResource extends Resource
                 Section::make('Order List')->schema([
                     Split::make([
                         TextInput::make('total')
-                            ->label('Total')
+                            ->label(__('custom.total'))
                             ->required()
                             ->default(0)
                             ->numeric()
@@ -160,7 +176,7 @@ class OrderResource extends Resource
                             ->prefix('Rp. ', true)
                             ->currencyMask('.', ','),
                         TextInput::make('total_with_promo')
-                            ->label('Total With Discount (%)')
+                            ->label(__('custom.total_with_discount'))
                             ->required()
                             ->default(0)
                             ->numeric()
@@ -179,14 +195,14 @@ class OrderResource extends Resource
                         ])
                         ->schema([
                             TextInput::make('name')
-                                ->label('Name')
+                                ->label(__('custom.name'))
                                 ->string()
                                 ->required()
-                                ->placeholder('Product Name')
+                                ->placeholder(__('custom.product_name'))
                                 ->maxLength(255)
                                 ->columnSpan(1),
                             TextInput::make('price')
-                                ->label('Price')
+                                ->label(__('custom.price'))
                                 ->numeric()
                                 ->required()
                                 ->placeholder(0)
@@ -209,14 +225,45 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('#')
+                    ->rowIndex(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label(__('custom.order_name')),
+                Tables\Columns\TextColumn::make('date')
+                    ->label(__('custom.date'))
+                    ->date('d F Y'),
                 Tables\Columns\TextColumn::make('author.name')
+                    ->label(__('custom.author'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('details_count')
+                    ->label(__('custom.total_products'))
+                    ->counts('details')
+                    ->badge()
+                    ->suffix(' '.Str::lower(__('custom.item'))),
+                Tables\Columns\TextColumn::make('details_sum_final_price')
+                    ->label(__('custom.final_price'))
+                    ->badge()
+                    ->sum('details', 'final_price')
+                    ->money('IDR', locale: 'id'),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->label(__('custom.trashed'))
+                    ->badge()
+                    ->color('danger')
+                    ->icon('heroicon-m-trash')
+                    ->formatStateUsing(fn(string $state): string => __('custom.trashed'))
+                    ->hidden(function ($livewire) {
+                        return !isset($livewire->getTableFilterState('trashed')['value']) || $livewire->getTableFilterState('trashed')['value'] === '';
+                    }),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -255,44 +302,44 @@ class OrderResource extends Resource
     }
 
     /**
-     * @param Get $get
-     * @param Set $set
+     * @param  Get  $get
+     * @param  Set  $set
      * @return void
      */
     private function triggerTotalBill(Get $get, Set $set): void
     {
-        $promo = (int)$get('promo');
+        $promo = (int) $get('promo');
         $prices = [];
         $prices_with_discount = [];
         foreach ($get('order_list') as $order) {
-            $prices[] = (int)$order['price'];
-            $prices_with_discount[] = (int)$order['price'] * $promo / 100;
+            $prices[] = (int) $order['price'];
+            $prices_with_discount[] = (int) $order['price'] * $promo / 100;
         }
         $set('total', ceil(array_sum($prices)));
         $set('total_with_promo', ceil(array_sum($prices_with_discount)));
     }
 
     /**
-     * @param Get $get
-     * @param Set $set
+     * @param  Get  $get
+     * @param  Set  $set
      * @return void
      */
     private function triggerTotalFee(Get $get, Set $set): void
     {
-        $order_fee = (int)$get('order_fee');
-        $delivery_fee = (int)$get('delivery_fee');
-        $tip = (int)$get('tip');
+        $order_fee = (int) $get('order_fee');
+        $delivery_fee = (int) $get('delivery_fee');
+        $tip = (int) $get('tip');
         $set('total_fee', array_sum([$order_fee, $delivery_fee, $tip]));
     }
 
     /**
-     * @param Get $get
-     * @param Set $set
+     * @param  Get  $get
+     * @param  Set  $set
      * @return void
      */
     private function triggerAdditionalDiscountPercentage(Get $get, Set $set): void
     {
-        $bill_before_discount = (int)($get('total') ?? 0);
+        $bill_before_discount = (int) ($get('total') ?? 0);
         $additional_discount = $get('additional_discount');
         if ($additional_discount > 0 && $bill_before_discount)
             $set(
@@ -302,14 +349,14 @@ class OrderResource extends Resource
     }
 
     /**
-     * @param Get $get
-     * @param Set $set
+     * @param  Get  $get
+     * @param  Set  $set
      * @return void
      */
     private function triggerDiscountPercentage(Get $get, Set $set): void
     {
-        $total_with_promo = (int)($get('total_with_promo') ?? 0);
-        $discount = (int)($get('discount') ?? 0);
+        $total_with_promo = (int) ($get('total_with_promo') ?? 0);
+        $discount = (int) ($get('discount') ?? 0);
         if ($discount > 0 && $total_with_promo > 0) {
             $set(
                 'discount_percent',

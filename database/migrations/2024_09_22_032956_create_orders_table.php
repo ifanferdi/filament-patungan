@@ -12,6 +12,8 @@ return new class extends Migration {
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->string('name', 255);
+            $table->date('date');
             $table->integer('promo')->default(100);
             $table->integer('order_fee')->default(0);
             $table->integer('delivery_fee')->default(0);

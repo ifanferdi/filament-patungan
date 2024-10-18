@@ -18,16 +18,17 @@ class CreateOrder extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $author_id = auth()->id();
-        $order_fee = (int)$data['order_fee'] ?? 0;
-        $delivery_fee = (int)$data['delivery_fee'] ?? 0;
-        $tip = (int)$data['tip'] ?? 0;
-        $discount = (int)$data['discount'] ?? 0;
-        $additional_discount = (int)$data['additional_discount'] ?? 0;
-        $total = (int)$data['total'] ?? 0;
-        $total_with_promo = (int)$data['total_with_promo'] ?? 0;
+        $order_fee = (int) ($data['order_fee'] ?? 0);
+        $delivery_fee = (int) ($data['delivery_fee'] ?? 0);
+        $tip = (int) ($data['tip'] ?? 0);
+        $discount = (int) ($data['discount'] ?? 0);
+        $additional_discount = (int) ($data['additional_discount'] ?? 0);
+        $total = (int) ($data['total'] ?? 0);
+        $total_with_promo = (int) ($data['total_with_promo'] ?? 0);
 
         $data = [
-            'promo' => (int)$data['promo'] ?? 100,
+            ...$data,
+            'promo' => (int) ($data['promo'] ?? 100),
             'order_fee' => $order_fee,
             'delivery_fee' => $delivery_fee,
             'tip' => $tip,

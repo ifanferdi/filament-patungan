@@ -31,12 +31,12 @@ class Order extends Model
     public function getDiscountWithPercentageAttribute(): string
     {
         $discount = number_format($this->discount, 2, ',', '.');
-        return "Rp " . $discount . " (" . $this->discount_percent . "%)";
+        return "Rp ".$discount." (".$this->discount_percent."%)";
     }
 
     public function getAdditionalDiscountWithPercentageAttribute(): string
     {
         $additional_discount = number_format($this->additional_discount, 2, ',', '.');
-        return "Rp " . $additional_discount . " (" . $this->additional_discount_percent . "%)";
+        return "Rp ".$additional_discount." (".$this->additional_discount_percent."%)";
     }
 }

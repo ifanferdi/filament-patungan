@@ -21,7 +21,7 @@ class OrderDetail extends Model
 
         static::creating(static function ($callback) {
             $order = $callback->order;
-            $price = (int)$callback->price;
+            $price = (int) $callback->price;
 
             $discount_by_percentage = $price * $order->promo / 100;
             $discount = $discount_by_percentage * $order->discount / $order->total_with_promo;

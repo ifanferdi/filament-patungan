@@ -16,11 +16,11 @@ return new class extends Migration {
             $table->string('name', 255);
             $table->integer('price')->default(0);
             $table->integer('discount_by_percentage')->default(0);
-            $table->float('discount')->default(0);
-            $table->float('additional_discount')->default(0);
-            $table->float('price_after_discount')->default(0);
-            $table->float('fee')->default(0);
-            $table->float('final_price')->default(0);
+            $table->double('discount')->default(0);
+            $table->double('additional_discount')->default(0);
+            $table->double('price_after_discount')->default(0);
+            $table->double('fee')->default(0);
+            $table->double('final_price')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });
