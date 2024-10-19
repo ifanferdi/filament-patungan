@@ -14,13 +14,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Illuminate\Support\Str;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class OrderResource extends Resource
 {
@@ -36,7 +36,7 @@ class OrderResource extends Resource
                     TextInput::make('name')
                         ->label(__('custom.order_name'))
                         ->required()
-                        ->placeholder(__('custom.example').': Roscik')
+                        ->placeholder(__('custom.example') . ': Roscik')
                         ->maxLength(255)
                         ->columnSpan(1),
                     DatePicker::make('date')
@@ -239,7 +239,7 @@ class OrderResource extends Resource
                     ->label(__('custom.total_products'))
                     ->counts('details')
                     ->badge()
-                    ->suffix(' '.Str::lower(__('custom.item'))),
+                    ->suffix(' ' . Str::lower(__('custom.item'))),
                 Tables\Columns\TextColumn::make('details_sum_final_price')
                     ->label(__('custom.final_price'))
                     ->badge()
@@ -250,7 +250,7 @@ class OrderResource extends Resource
                     ->badge()
                     ->color('danger')
                     ->icon('heroicon-m-trash')
-                    ->formatStateUsing(fn(string $state): string => __('custom.trashed'))
+                    ->formatStateUsing(fn (string $state): string => __('custom.trashed'))
                     ->hidden(function ($livewire) {
                         return !isset($livewire->getTableFilterState('trashed')['value']) || $livewire->getTableFilterState('trashed')['value'] === '';
                     }),
@@ -260,9 +260,11 @@ class OrderResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\RestoreAction::make()->color('success'),
                     Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make()
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
@@ -272,7 +274,7 @@ class OrderResource extends Resource
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ])
-            ->recordUrl(fn(Model $record): string => Pages\ViewOrder::getUrl([$record->id]));
+            ->recordUrl(fn (Model $record): string => Pages\ViewOrder::getUrl([$record->id]));
     }
 
 
@@ -302,44 +304,44 @@ class OrderResource extends Resource
     }
 
     /**
-     * @param  Get  $get
-     * @param  Set  $set
+     * @param Get $get
+     * @param Set $set
      * @return void
      */
     private function triggerTotalBill(Get $get, Set $set): void
     {
-        $promo = (int) $get('promo');
+        $promo = (int)$get('promo');
         $prices = [];
         $prices_with_discount = [];
         foreach ($get('order_list') as $order) {
-            $prices[] = (int) $order['price'];
-            $prices_with_discount[] = (int) $order['price'] * $promo / 100;
+            $prices[] = (int)$order['price'];
+            $prices_with_discount[] = (int)$order['price'] * $promo / 100;
         }
         $set('total', ceil(array_sum($prices)));
         $set('total_with_promo', ceil(array_sum($prices_with_discount)));
     }
 
     /**
-     * @param  Get  $get
-     * @param  Set  $set
+     * @param Get $get
+     * @param Set $set
      * @return void
      */
     private function triggerTotalFee(Get $get, Set $set): void
     {
-        $order_fee = (int) $get('order_fee');
-        $delivery_fee = (int) $get('delivery_fee');
-        $tip = (int) $get('tip');
+        $order_fee = (int)$get('order_fee');
+        $delivery_fee = (int)$get('delivery_fee');
+        $tip = (int)$get('tip');
         $set('total_fee', array_sum([$order_fee, $delivery_fee, $tip]));
     }
 
     /**
-     * @param  Get  $get
-     * @param  Set  $set
+     * @param Get $get
+     * @param Set $set
      * @return void
      */
     private function triggerAdditionalDiscountPercentage(Get $get, Set $set): void
     {
-        $bill_before_discount = (int) ($get('total') ?? 0);
+        $bill_before_discount = (int)($get('total') ?? 0);
         $additional_discount = $get('additional_discount');
         if ($additional_discount > 0 && $bill_before_discount)
             $set(
@@ -349,14 +351,14 @@ class OrderResource extends Resource
     }
 
     /**
-     * @param  Get  $get
-     * @param  Set  $set
+     * @param Get $get
+     * @param Set $set
      * @return void
      */
     private function triggerDiscountPercentage(Get $get, Set $set): void
     {
-        $total_with_promo = (int) ($get('total_with_promo') ?? 0);
-        $discount = (int) ($get('discount') ?? 0);
+        $total_with_promo = (int)($get('total_with_promo') ?? 0);
+        $discount = (int)($get('discount') ?? 0);
         if ($discount > 0 && $total_with_promo > 0) {
             $set(
                 'discount_percent',

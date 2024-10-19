@@ -22,6 +22,9 @@ class ViewOrder extends ViewRecord
     {
         return [
             Actions\EditAction::make(),
+            Actions\DeleteAction::make(),
+            Actions\ForceDeleteAction::make(),
+            Actions\RestoreAction::make(),
         ];
     }
 
@@ -30,7 +33,7 @@ class ViewOrder extends ViewRecord
         return $infolist->schema([
             Section::make('Order Data')
                 ->description(function ($record): string {
-                    return $record->name.' ('.Carbon::parse($record->date)->format('d F Y').')';
+                    return $record->name . ' (' . Carbon::parse($record->date)->format('d F Y') . ')';
                 })
                 ->schema([
                     Grid::make()
@@ -60,19 +63,21 @@ class ViewOrder extends ViewRecord
                                 ->money('IDR. ', locale: 'id')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
-                        ])->columnSpan(2),
+                        ])->columnSpan(1),
 
                     Grid::make()->schema([
                         TextEntry::make('discount_with_percentage')
                             ->label('Discount')
+                            ->inlineLabel()
                             ->columnSpan(1),
                         TextEntry::make('additional_discount_with_percentage')
                             ->label('Additional Discount')
+                            ->inlineLabel()
                             ->columnSpan(1),
                     ])->columnSpan(1)->columns(1)
                 ])
                 ->collapsible()
-                ->columns(3),
+                ->columns(),
             Section::make('Order List')->schema([
                 Livewire::make(OrderListTableComponent::class, ['id' => $this->record->id])
             ])

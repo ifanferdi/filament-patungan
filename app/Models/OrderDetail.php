@@ -20,29 +20,36 @@ class OrderDetail extends Model
         parent::boot();
 
         static::creating(static function ($callback) {
-            $order = $callback->order;
-            $price = (int) $callback->price;
-
-            $discount_by_percentage = $price * $order->promo / 100;
-            $discount = $discount_by_percentage * $order->discount / $order->total_with_promo;
-            $additional_discount = $price * $order->additional_discount / $order->total;
-
-            $price_after_discount = $order->total_with_promo > $order->discout
-                ? $price - ($discount + $additional_discount)
-                : $price - ($discount_by_percentage + $additional_discount);
-
-            $fee = $order->total_fee / $order->total_items;
-            $final_price = $price_after_discount + $fee;
-
-            $callback->discount_by_percentage = $discount_by_percentage;
-            $callback->discount = $discount;
-            $callback->additional_discount = $additional_discount;
-            $callback->price_after_discount = $price_after_discount;
-            $callback->fee = $fee;
-            $callback->final_price = $final_price;
+            self::processOrderDetailData($callback);
         });
     }
 
+    // FUNCTION
+    public static function processOrderDetailData($data): OrderDetail
+    {
+        $order = $data->order;
+        $price = (int)$data->price;
+
+        $discount_by_percentage = $price * $order->promo / 100;
+        $discount = $discount_by_percentage * $order->discount / $order->total_with_promo;
+        $additional_discount = $price * $order->additional_discount / $order->total;
+
+        $price_after_discount = $order->total_with_promo > $order->discout
+            ? $price - ($discount + $additional_discount)
+            : $price - ($discount_by_percentage + $additional_discount);
+
+        $fee = $order->total_fee / $order->total_items;
+        $final_price = $price_after_discount + $fee;
+
+        $data->discount_by_percentage = $discount_by_percentage;
+        $data->discount = $discount;
+        $data->additional_discount = $additional_discount;
+        $data->price_after_discount = $price_after_discount;
+        $data->fee = $fee;
+        $data->final_price = $final_price;
+
+        return $data;
+    }
 
     // RELATIONSHIP
     public function order(): BelongsTo
