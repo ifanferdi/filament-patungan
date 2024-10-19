@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
-use App\Livewire\ListProducts22;
 use App\Livewire\OrderListTableComponent;
 use Carbon\Carbon;
 use Filament\Actions;
@@ -33,7 +32,7 @@ class ViewOrder extends ViewRecord
         return $infolist->schema([
             Section::make('Order Data')
                 ->description(function ($record): string {
-                    return $record->name . ' (' . Carbon::parse($record->date)->format('d F Y') . ')';
+                    return $record->name . ' (' . Carbon::parse($record->date)->format('d F Y') . ') - ' . $record->author->name;
                 })
                 ->schema([
                     Grid::make()
@@ -64,7 +63,6 @@ class ViewOrder extends ViewRecord
                                 ->inlineLabel()
                                 ->columnSpanFull(),
                         ])->columnSpan(1),
-
                     Grid::make()->schema([
                         TextEntry::make('discount_with_percentage')
                             ->label('Discount')

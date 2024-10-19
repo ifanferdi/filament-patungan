@@ -29,6 +29,8 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
         return $table
             ->query(OrderDetail::where('order_id', $this->id))
             ->columns([
+                TextColumn::make('#')
+                    ->rowIndex(),
                 TextColumn::make('name')
                     ->label('Product Name'),
                 TextColumn::make('price')
@@ -70,11 +72,11 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
             ->paginated(false);
     }
 
-//    Discount
-//price-all discount
-//fee
-//final price
-//preseentase discount
+    //    Discount
+    //price-all discount
+    //fee
+    //final price
+    //preseentase discount
 
     public function errorBagExcept($field)
     {
