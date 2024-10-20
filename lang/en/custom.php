@@ -22,4 +22,10 @@ return [
     'final_price' => 'Final Price',
     'item' => 'Item',
     'trashed' => 'Trashed',
+    'is_paid' => 'Is Paid',
+    'paid_success' => 'Paid Successfully Updated',
+    'all_paid_success' => 'Mark All Paid Successfully',
+    'unpaid' => 'Unpaid',
+    'all_paid' => 'All Paid',
+    'mark_all_paid' => 'Mark All Paid',
 ];

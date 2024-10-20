@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Models\OrderDetail;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -68,6 +70,14 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                     ->money('IDR. ', locale: 'id')
                     ->label('Final Price')
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
+                CheckboxColumn::make('is_paid')
+                    ->label(__('custom.is_paid'))
+                    ->afterStateUpdated(function ($record, $state) {
+                        Notification::make()
+                            ->title(__('custom.paid_success'))
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->paginated(false);
     }

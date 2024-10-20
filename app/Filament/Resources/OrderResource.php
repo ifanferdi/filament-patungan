@@ -14,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -46,7 +47,7 @@ class OrderResource extends Resource
                         ->default(now())
                         ->required()
                         ->columnSpan(1)
-                ]),
+                ])->from('md'),
                 Grid::make(5)->schema([
                     Section::make('Promo, Fee, and Tip')->schema([
                         TextInput::make('promo')
@@ -228,7 +229,8 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('#')
                     ->rowIndex(),
                 Tables\Columns\TextColumn::make('name')
-                    ->label(__('custom.order_name')),
+                    ->label(__('custom.order_name'))
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('date')
                     ->label(__('custom.date'))
                     ->date('d F Y'),
@@ -254,7 +256,13 @@ class OrderResource extends Resource
                     ->hidden(function ($livewire) {
                         return !isset($livewire->getTableFilterState('trashed')['value']) || $livewire->getTableFilterState('trashed')['value'] === '';
                     }),
-            ])
+                Tables\Columns\TextColumn::make('unpaid_count')
+                    ->label(__('custom.is_paid'))
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => $state > 0 ? $state . ' ' . __('custom.unpaid') : __('custom.all_paid'))
+                    ->color(fn (string $state): string => $state > 0 ? 'danger' : 'success')
+                    ->icon(fn (string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle')
+                ,])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
@@ -265,6 +273,22 @@ class OrderResource extends Resource
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\ForceDeleteAction::make(),
+                    Tables\Actions\Action::make('mark_all_paid')
+                        ->label(__('custom.mark_all_paid'))
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(function (Model $record) {
+                            $record->details()->update(['is_paid' => true]);
+                            $record->save();
+                            Notification::make()
+                                ->title(__('custom.all_paid_success'))
+                                ->success()
+                                ->send();
+
+                        })
+                        ->hidden(fn (Order $record) => $record->unpaid_count === 0)
+                        ->after(fn ($livewire) => $livewire->resetTable()),
                 ])
             ])
             ->bulkActions([

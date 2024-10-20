@@ -4,6 +4,7 @@ namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
 use App\Livewire\OrderListTableComponent;
+use App\Models\Order;
 use Carbon\Carbon;
 use Filament\Actions;
 use Filament\Infolists\Components\Grid;
@@ -11,7 +12,9 @@ use Filament\Infolists\Components\Livewire;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class ViewOrder extends ViewRecord
 {
@@ -20,6 +23,20 @@ class ViewOrder extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('mark_all_paid')
+                ->label(__('custom.mark_all_paid'))
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->requiresConfirmation()
+                ->action(function (Model $record) {
+                    $record->details()->update(['is_paid' => true]);
+                    $record->save();
+                    Notification::make()
+                        ->title(__('custom.all_paid_success'))
+                        ->success()
+                        ->send();
+                })
+                ->hidden(fn (Order $record) => $record->unpaid_count === 0),
             Actions\EditAction::make(),
             Actions\DeleteAction::make(),
             Actions\ForceDeleteAction::make(),

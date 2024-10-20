@@ -70,4 +70,9 @@ class Order extends Model
         $additional_discount = number_format($this->additional_discount, 2, ',', '.');
         return "Rp " . $additional_discount . " (" . $this->additional_discount_percent . "%)";
     }
+
+    public function getUnpaidCountAttribute(): int
+    {
+        return $this->details()->where('is_paid', false)->count();
+    }
 }
