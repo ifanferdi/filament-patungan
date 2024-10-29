@@ -21,6 +21,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class OrderResource extends Resource
@@ -190,6 +191,8 @@ class OrderResource extends Resource
                         ->hiddenLabel()
                         ->relationship('details')
                         ->live()
+                        ->reorderable()
+                        ->cloneable()
                         ->headers([
                             Header::make('name')->markAsRequired(),
                             Header::make('price')->markAsRequired(),
@@ -247,36 +250,30 @@ class OrderResource extends Resource
                     ->badge()
                     ->sum('details', 'final_price')
                     ->money('IDR', locale: 'id'),
+                Tables\Columns\TextColumn::make('details_unpaid_count')
+                    ->counts('details_unpaid')
+                    ->label(__('custom.is_paid'))
+                    ->badge()
+                    ->formatStateUsing(fn(string $state): string => $state > 0 ? $state . ' ' . __('custom.unpaid') : __('custom.all_paid'))
+                    ->color(fn(string $state): string => $state > 0 ? 'danger' : 'success')
+                    ->icon(fn(string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle'),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label(__('custom.trashed'))
-                    ->badge()
                     ->color('danger')
-                    ->icon('heroicon-m-trash')
-                    ->formatStateUsing(fn (string $state): string => __('custom.trashed'))
+                    ->formatStateUsing(fn(string $state): string => Carbon::parse($state)->diffForHumans())
                     ->hidden(function ($livewire) {
                         return !isset($livewire->getTableFilterState('trashed')['value']) || $livewire->getTableFilterState('trashed')['value'] === '';
                     }),
-                Tables\Columns\TextColumn::make('unpaid_count')
-                    ->label(__('custom.is_paid'))
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => $state > 0 ? $state . ' ' . __('custom.unpaid') : __('custom.all_paid'))
-                    ->color(fn (string $state): string => $state > 0 ? 'danger' : 'success')
-                    ->icon(fn (string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle')
-                ,])
+            ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\RestoreAction::make()->color('success'),
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\ForceDeleteAction::make(),
                     Tables\Actions\Action::make('mark_all_paid')
                         ->label(__('custom.mark_all_paid'))
                         ->icon('heroicon-o-check-circle')
-                        ->color('success')
+                        ->color('primary')
                         ->requiresConfirmation()
                         ->action(function (Model $record) {
                             $record->details()->update(['is_paid' => true]);
@@ -285,10 +282,14 @@ class OrderResource extends Resource
                                 ->title(__('custom.all_paid_success'))
                                 ->success()
                                 ->send();
-
                         })
-                        ->hidden(fn (Order $record) => $record->unpaid_count === 0)
-                        ->after(fn ($livewire) => $livewire->resetTable()),
+                        ->hidden(fn(Order $record) => $record->unpaid_count === 0 || $record->trashed())
+                        ->after(fn($livewire) => $livewire->resetTable()),
+                    Tables\Actions\RestoreAction::make()->color('success'),
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
@@ -298,7 +299,7 @@ class OrderResource extends Resource
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ])
-            ->recordUrl(fn (Model $record): string => Pages\ViewOrder::getUrl([$record->id]));
+            ->recordUrl(fn(Model $record): string => Pages\ViewOrder::getUrl([$record->id]));
     }
 
 
@@ -366,11 +367,13 @@ class OrderResource extends Resource
     private function triggerAdditionalDiscountPercentage(Get $get, Set $set): void
     {
         $bill_before_discount = (int)($get('total') ?? 0);
-        $additional_discount = $get('additional_discount');
+        $additional_discount = (int)($get('additional_discount') ?? 0);
+
+        if ($additional_discount === 0) $set('additional_discount_percent', 0);
         if ($additional_discount > 0 && $bill_before_discount)
             $set(
                 'additional_discount_percent',
-                ceil($additional_discount / $bill_before_discount * 100)
+                (int)($additional_discount / $bill_before_discount * 100)
             );
     }
 
@@ -383,10 +386,12 @@ class OrderResource extends Resource
     {
         $total_with_promo = (int)($get('total_with_promo') ?? 0);
         $discount = (int)($get('discount') ?? 0);
+
+        if ($discount === 0) $set('discount_percent', 0);
         if ($discount > 0 && $total_with_promo > 0) {
             $set(
                 'discount_percent',
-                ceil($discount / $total_with_promo * 100)
+                (int)($discount / $total_with_promo * 100)
             );
         }
     }

@@ -36,7 +36,7 @@ class ViewOrder extends ViewRecord
                         ->success()
                         ->send();
                 })
-                ->hidden(fn (Order $record) => $record->unpaid_count === 0),
+                ->hidden(fn(Order $record) => $record->unpaid_count === 0),
             Actions\EditAction::make(),
             Actions\DeleteAction::make(),
             Actions\ForceDeleteAction::make(),
@@ -55,47 +55,48 @@ class ViewOrder extends ViewRecord
                     Grid::make()
                         ->schema([
                             TextEntry::make('promo')
-                                ->label('Discount (%)')
+                                ->label(__('custom.discount') . '%')
                                 ->suffix('%')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
                             TextEntry::make('order_fee')
-                                ->label('Order Fee')
+                                ->label(__('custom.order_fee'))
                                 ->money('IDR. ', locale: 'id')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
                             TextEntry::make('delivery_fee')
-                                ->label('Delivery fee')
+                                ->label(__('custom.delivery_fee'))
                                 ->money('IDR. ', locale: 'id')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
                             TextEntry::make('tip')
-                                ->label('Tip')
+                                ->label(__('custom.tip'))
                                 ->money('IDR. ', locale: 'id')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
                             TextEntry::make('total_fee')
-                                ->label('Total Fee')
+                                ->label(__('custom.total_fee'))
                                 ->money('IDR. ', locale: 'id')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
                         ])->columnSpan(1),
                     Grid::make()->schema([
                         TextEntry::make('discount_with_percentage')
-                            ->label('Discount')
+                            ->label(__('custom.discount'))
                             ->inlineLabel()
                             ->columnSpan(1),
                         TextEntry::make('additional_discount_with_percentage')
-                            ->label('Additional Discount')
+                            ->label(__('custom.additional_discount'))
                             ->inlineLabel()
                             ->columnSpan(1),
                     ])->columnSpan(1)->columns(1)
                 ])
                 ->collapsible()
                 ->columns(),
-            Section::make('Order List')->schema([
-                Livewire::make(OrderListTableComponent::class, ['id' => $this->record->id])
-            ])
+            Section::make(__('custom.order_list'))
+                ->schema([
+                    Livewire::make(OrderListTableComponent::class, ['id' => $this->record->id])
+                ])
                 ->collapsible()
         ]);
     }

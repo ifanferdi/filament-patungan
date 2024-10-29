@@ -28,4 +28,5 @@ return [
     'unpaid' => 'Unpaid',
     'all_paid' => 'All Paid',
     'mark_all_paid' => 'Mark All Paid',
+    'order_list' => 'Order List'
 ];

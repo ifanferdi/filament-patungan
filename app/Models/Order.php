@@ -53,6 +53,11 @@ class Order extends Model
         return $this->hasMany(OrderDetail::class, 'order_id');
     }
 
+    public function details_unpaid(): HasMany
+    {
+        return $this->details()->where('is_paid', false);
+    }
+
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
@@ -69,10 +74,5 @@ class Order extends Model
     {
         $additional_discount = number_format($this->additional_discount, 2, ',', '.');
         return "Rp " . $additional_discount . " (" . $this->additional_discount_percent . "%)";
-    }
-
-    public function getUnpaidCountAttribute(): int
-    {
-        return $this->details()->where('is_paid', false)->count();
     }
 }
