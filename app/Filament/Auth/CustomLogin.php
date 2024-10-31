@@ -5,6 +5,8 @@ namespace App\Filament\Auth;
 use Filament\Pages\Auth\Login;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\TextInput;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
 
 class CustomLogin extends Login
@@ -51,6 +53,18 @@ class CustomLogin extends Login
         ];
     }
 
+    protected function getPasswordFormComponent(): Component
+    {
+        return TextInput::make('password')
+            ->label(__('filament-panels::pages/auth/login.form.password.label'))
+            ->hint(filament()->hasPasswordReset() ? new HtmlString(Blade::render('<x-filament::link :href="filament()->getRequestPasswordResetUrl()" tabindex="3"> {{ __(\'filament-panels::pages/auth/login.actions.request_password_reset.label\') }}</x-filament::link>')) : null)
+            ->password()
+            ->revealable(filament()->arePasswordsRevealable())
+            ->autocomplete('current-password')
+            ->required()
+            ->default('password')
+            ->extraInputAttributes(['tabindex' => 2]);
+    }
 
     protected function throwFailureValidationException(): never
     {
