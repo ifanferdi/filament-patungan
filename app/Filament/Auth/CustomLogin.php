@@ -34,6 +34,7 @@ class CustomLogin extends Login
             ->required()
             ->autocomplete()
             ->autofocus()
+            ->default('admin')
             ->extraInputAttributes(['tabindex' => 1]);
     }
 

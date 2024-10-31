@@ -25,6 +25,11 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->profile() //feature
+            ->registration() //feature
+            ->passwordReset() //feature
+            ->unsavedChangesAlerts()
+            // ->databaseTransactions()
             ->id('admin')
             ->path('admin')
             ->login(CustomLogin::class)
