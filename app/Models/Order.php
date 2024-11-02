@@ -47,6 +47,12 @@ class Order extends Model
         ];
     }
 
+    public static function markAllPaid(Model $order): void
+    {
+        $order->details()->update(['is_paid' => true]);
+        $order->save();
+    }
+
     // RELATIONSHIP
     public function details(): HasMany
     {

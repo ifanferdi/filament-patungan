@@ -28,5 +28,10 @@ return [
     'unpaid' => 'Unpaid',
     'all_paid' => 'All Paid',
     'mark_all_paid' => 'Mark All Paid',
-    'order_list' => 'Order List'
+    'order_list' => 'Order List',
+    'add_payment' => 'Add Payment',
+    'add_order' => 'Add Order',
+    'account_number' => 'Account Number',
+    'is_primary' => 'Is Primary',
+    'provider' => 'Provider',
 ];

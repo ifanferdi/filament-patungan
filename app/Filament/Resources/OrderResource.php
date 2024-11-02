@@ -14,15 +14,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 class OrderResource extends Resource
 {
@@ -38,6 +33,7 @@ class OrderResource extends Resource
                     TextInput::make('name')
                         ->label(__('custom.order_name'))
                         ->required()
+                        ->autofocus()
                         ->placeholder(__('custom.example') . ': Roscik')
                         ->maxLength(255)
                         ->columnSpan(1),
@@ -72,7 +68,6 @@ class OrderResource extends Resource
                             ->numeric()
                             ->placeholder('0')
                             ->prefix('Rp. ', true)
-                            ->autofocus()
                             ->minValue(0)
                             ->currencyMask('.', ',', 0)
                             ->columnSpan(['md' => 2, 'default' => 6])
@@ -227,79 +222,9 @@ class OrderResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('#')
-                    ->rowIndex(),
-                Tables\Columns\TextColumn::make('name')
-                    ->label(__('custom.order_name'))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('date')
-                    ->label(__('custom.date'))
-                    ->date('d F Y'),
-                Tables\Columns\TextColumn::make('author.name')
-                    ->label(__('custom.author'))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('details_count')
-                    ->label(__('custom.total_products'))
-                    ->counts('details')
-                    ->badge()
-                    ->suffix(' ' . Str::lower(__('custom.item'))),
-                Tables\Columns\TextColumn::make('details_sum_final_price')
-                    ->label(__('custom.final_price'))
-                    ->badge()
-                    ->sum('details', 'final_price')
-                    ->money('IDR', locale: 'id'),
-                Tables\Columns\TextColumn::make('details_unpaid_count')
-                    ->counts('details_unpaid')
-                    ->label(__('custom.is_paid'))
-                    ->badge()
-                    ->formatStateUsing(fn(string $state): string => $state > 0 ? $state . ' ' . __('custom.unpaid') : __('custom.all_paid'))
-                    ->color(fn(string $state): string => $state > 0 ? 'danger' : 'success')
-                    ->icon(fn(string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle'),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label(__('custom.trashed'))
-                    ->color('danger')
-                    ->formatStateUsing(fn(string $state): string => Carbon::parse($state)->diffForHumans())
-                    ->hidden(function ($livewire) {
-                        return !isset($livewire->getTableFilterState('trashed')['value']) || $livewire->getTableFilterState('trashed')['value'] === '';
-                    }),
-            ])
-            ->filters([
-                Tables\Filters\TrashedFilter::make(),
-            ])
-            ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\Action::make('mark_all_paid')
-                        ->label(__('custom.mark_all_paid'))
-                        ->icon('heroicon-o-check-circle')
-                        ->color('primary')
-                        ->requiresConfirmation()
-                        ->action(function (Model $record) {
-                            $record->details()->update(['is_paid' => true]);
-                            $record->save();
-                            Notification::make()
-                                ->title(__('custom.all_paid_success'))
-                                ->success()
-                                ->send();
-                        })
-                        ->hidden(fn(Order $record) => $record->unpaid_count === 0 || $record->trashed())
-                        ->after(fn($livewire) => $livewire->resetTable()),
-                    Tables\Actions\RestoreAction::make()->color('success'),
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\ForceDeleteAction::make(),
-                ])
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                ]),
-            ])
-            ->recordUrl(fn(Model $record): string => Pages\ViewOrder::getUrl([$record->id]));
+        return $table->columns([
+            //
+        ]);
     }
 
 
