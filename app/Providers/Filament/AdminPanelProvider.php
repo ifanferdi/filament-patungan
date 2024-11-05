@@ -28,8 +28,6 @@ class AdminPanelProvider extends PanelProvider
             ->profile() //feature
             ->registration() //feature
             ->passwordReset() //feature
-            ->unsavedChangesAlerts()
-            // ->databaseTransactions()
             ->id('admin')
             ->path('admin')
             ->login(CustomLogin::class)
@@ -44,7 +42,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

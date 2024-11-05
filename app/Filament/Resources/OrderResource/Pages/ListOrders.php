@@ -4,6 +4,7 @@ namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
 use App\Models\Order;
+use Filament\Support\Colors\Color;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
@@ -23,6 +24,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class ListOrders extends ListRecords
@@ -47,29 +49,32 @@ class ListOrders extends ListRecords
                 ->label(__('custom.total_products'))
                 ->counts('details')
                 ->badge()
+                ->color(fn() => Auth::check() ? 'primary' : Color::Blue)
                 ->suffix(' ' . Str::lower(__('custom.item'))),
             TextColumn::make('details_sum_final_price')
                 ->label(__('custom.final_price'))
                 ->badge()
+                ->color(fn() => Auth::check() ? 'primary' : Color::Blue)
                 ->sum('details', 'final_price')
                 ->money('IDR', locale: 'id'),
             TextColumn::make('details_unpaid_count')
                 ->counts('details_unpaid')
                 ->label(__('custom.is_paid'))
                 ->badge()
-                ->formatStateUsing(fn (string $state): string => $state > 0 ? $state . ' ' . __('custom.unpaid') : __('custom.all_paid'))
-                ->color(fn (string $state): string => $state > 0 ? 'danger' : 'success')
-                ->icon(fn (string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle'),
+                ->formatStateUsing(fn(string $state): string => $state > 0 ? $state . ' ' . __('custom.unpaid') : __('custom.all_paid'))
+                ->color(fn(string $state): string => $state > 0 ? 'danger' : 'success')
+                ->icon(fn(string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle'),
             TextColumn::make('deleted_at')
                 ->label(__('custom.trashed'))
                 ->color('danger')
-                ->formatStateUsing(fn (string $state): string => Carbon::parse($state)->diffForHumans())
+                ->formatStateUsing(fn(string $state): string => Carbon::parse($state)->diffForHumans())
                 ->hidden(function ($livewire) {
                     return !isset($livewire->getTableFilterState('trashed')['value']) || $livewire->getTableFilterState('trashed')['value'] === '';
                 }),
         ])
             ->filters([
-                TrashedFilter::make(),
+                TrashedFilter::make()
+                    ->visible(fn() => Auth::check()),
             ])
             ->actions([
                 ActionGroup::make([
@@ -85,23 +90,26 @@ class ListOrders extends ListRecords
                                 ->success()
                                 ->send();
                         })
-                        ->hidden(fn (Order $record) => $record->unpaid_count === 0 || $record->trashed())
-                        ->after(fn ($livewire) => $livewire->resetTable()),
+                        ->hidden(fn(Order $record) => $record->unpaid_count === 0 || $record->trashed())
+                        ->after(fn($livewire) => $livewire->resetTable()),
                     RestoreAction::make()->color('success'),
                     ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make(),
                     ForceDeleteAction::make(),
                 ])
+                    ->visible(fn() => Auth::check())
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                ]),
+                ])
+                    ->visible(fn() => Auth::check()),
             ])
-            ->recordUrl(fn (Model $record): string => ViewOrder::getUrl([$record->id]))
+            // TODO: Record url buat versi public
+            ->recordUrl(fn(Model $record): string => ViewOrder::getUrl([$record->id]))
             ->emptyStateActions([
                 Action::make('create')
                     ->label(__('custom.add_order'))
