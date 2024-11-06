@@ -12,6 +12,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class OrderListTableComponent extends Component implements HasTable, HasForms
@@ -29,6 +30,7 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
     public function table(Table $table): Table
     {
         return $table
+            ->striped()
             ->query(OrderDetail::where('order_id', $this->id))
             ->columns([
                 TextColumn::make('#')
@@ -77,7 +79,8 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                             ->title(__('custom.paid_success'))
                             ->success()
                             ->send();
-                    }),
+                    })
+                    ->disabled(Auth::guest()),
             ])
             ->paginated(false);
     }

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
-use App\Filament\Resources\PaymentResource\RelationManagers;
 use App\Models\Payment;
 use App\Models\User;
 use Filament\Forms\Components\Checkbox;
@@ -32,7 +31,7 @@ class PaymentResource extends Resource
                     ->required()
                     ->columnSpanFull()
                     ->default(auth()->user()->id)
-                    ->disableOptionWhen(fn(): bool => auth()->user()->username !== 'admin'),
+                    ->disableOptionWhen(fn (): bool => auth()->user()->username !== 'admin'),
                 Split::make([
                     Select::make('provider')
                         ->label(__('custom.provider'))

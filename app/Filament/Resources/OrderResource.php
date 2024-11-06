@@ -6,6 +6,7 @@ use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Awcodes\TableRepeater\Header;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
@@ -18,12 +19,31 @@ use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-currency-dollar';
+
+    public static function getRouteBaseName(?string $panel = null): string
+    {
+        $panel = $panel ? Filament::getPanel($panel) : Filament::getCurrentPanel();
+
+        if (Auth::guest())
+            return 'public.orders';
+
+        $routeBaseName = (string)str(static::getSlug())
+            ->replace('/', '.')
+            ->prepend('resources.');
+
+        if (filled($cluster = static::getCluster())) {
+            $routeBaseName = $cluster::prependClusterRouteBaseName($routeBaseName);
+        }
+
+        return $panel->generateRouteName($routeBaseName);
+    }
 
     public static function form(Form $form): Form
     {

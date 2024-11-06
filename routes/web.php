@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Pages\Order\PublicListOrders;
+use App\Filament\Pages\Order\PublicViewOrder;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,4 +22,5 @@ Route::get('/login', function () {
     return redirect(route('filament.admin.auth.login'));
 })->name('login');
 
-Route::get('public/orders', PublicListOrders::class)->name('public.orders');
+Route::get('public/orders', PublicListOrders::class)->name('public.orders.index');
+Route::get('public/orders/{record}', PublicViewOrder::class)->name('public.orders.show');

@@ -19,25 +19,27 @@ class ListPayments extends ListRecords
 
     public function table(Table $table): Table
     {
-        return $table->columns([
-            TextColumn::make('#')->rowIndex(),
-            TextColumn::make('provider_label')
-                ->label(__('custom.provider')),
-            TextColumn::make('account_number')
-                ->label(__('custom.account_number')),
-            IconColumn::make('is_primary')
-                ->label(__('custom.is_primary') . '?')
-                ->boolean(),
-            TextColumn::make('user.name')
-                ->label(__('filament-panels::pages/auth/register.form.name.label'))
-                ->hidden(fn () => auth()->user()->username !== 'admin'),
-        ])->actions([
-            ActionGroup::make([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
-            ])
-        ]);
+        return $table
+            ->striped()
+            ->columns([
+                TextColumn::make('#')->rowIndex(),
+                TextColumn::make('provider_label')
+                    ->label(__('custom.provider')),
+                TextColumn::make('account_number')
+                    ->label(__('custom.account_number')),
+                IconColumn::make('is_primary')
+                    ->label(__('custom.is_primary') . '?')
+                    ->boolean(),
+                TextColumn::make('user.name')
+                    ->label(__('filament-panels::pages/auth/register.form.name.label'))
+                    ->hidden(fn () => auth()->user()->username !== 'admin'),
+            ])->actions([
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+            ]);
     }
 
     protected function getHeaderActions(): array
