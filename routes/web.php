@@ -22,5 +22,5 @@ Route::get('/login', function () {
     return redirect(route('filament.admin.auth.login'));
 })->name('login');
 
-Route::get('public/orders', PublicListOrders::class)->name('public.orders.index');
-Route::get('public/orders/{record}', PublicViewOrder::class)->name('public.orders.show');
+Route::get('/orders', PublicListOrders::class)->name('public.orders.index');
+Route::get('/orders/{record}', PublicViewOrder::class)->name('public.orders.show');
