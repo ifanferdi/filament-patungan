@@ -32,11 +32,10 @@ class CustomLogin extends Login
     protected function getLoginFormComponent(): Component
     {
         return TextInput::make('login')
-            ->label('Username or email')
+            ->label('Username')
             ->required()
             ->autocomplete()
             ->autofocus()
-            ->default('admin')
             ->extraInputAttributes(['tabindex' => 1]);
     }
 
@@ -62,7 +61,6 @@ class CustomLogin extends Login
             ->revealable(filament()->arePasswordsRevealable())
             ->autocomplete('current-password')
             ->required()
-            ->default('password')
             ->extraInputAttributes(['tabindex' => 2]);
     }
 

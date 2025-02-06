@@ -21,7 +21,7 @@ class CustomRegistration extends Register
                     ->schema([
                         $this->getNameFormComponent(),
                         $this->getUsernameFormComponent(),
-                        $this->getEmailFormComponent(),
+                        // $this->getEmailFormComponent(),
                         $this->getPasswordFormComponent(),
                         $this->getPasswordConfirmationFormComponent(),
                     ])
