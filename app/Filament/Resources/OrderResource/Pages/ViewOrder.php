@@ -35,7 +35,7 @@ class ViewOrder extends ViewRecord
                         ->success()
                         ->send();
                 })
-                ->hidden(fn (Order $record) => $record->unpaid_count === 0),
+                ->hidden(fn (Order $record) => $record->details_unpaid()->count() === 0),
             Actions\EditAction::make(),
             Actions\DeleteAction::make(),
             Actions\ForceDeleteAction::make(),
