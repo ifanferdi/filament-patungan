@@ -2,7 +2,6 @@
 
 namespace App\Filament\Pages\Order;
 
-use Filament\Pages\Page;
 use App\Filament\Resources\OrderResource\Pages\ListOrders;
 
 class PublicListOrders extends ListOrders
@@ -15,7 +14,6 @@ class PublicListOrders extends ListOrders
 
     protected static bool $shouldRegisterNavigation = false;
 
-    
     protected function getHeaderActions(): array
     {
         return [];

@@ -2,9 +2,9 @@
 
 namespace App\Filament\Auth;
 
-use Filament\Pages\Auth\Login;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\TextInput;
+use Filament\Pages\Auth\Login;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
@@ -32,16 +32,15 @@ class CustomLogin extends Login
     protected function getLoginFormComponent(): Component
     {
         return TextInput::make('login')
-            ->label('Username or email')
+            ->label('Username')
             ->required()
             ->autocomplete()
             ->autofocus()
-            ->default('admin')
             ->extraInputAttributes(['tabindex' => 1]);
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
     protected function getCredentialsFromFormData(array $data): array
@@ -62,10 +61,12 @@ class CustomLogin extends Login
             ->revealable(filament()->arePasswordsRevealable())
             ->autocomplete('current-password')
             ->required()
-            ->default('password')
             ->extraInputAttributes(['tabindex' => 2]);
     }
 
+    /**
+     * @throws ValidationException
+     */
     protected function throwFailureValidationException(): never
     {
         throw ValidationException::withMessages([
