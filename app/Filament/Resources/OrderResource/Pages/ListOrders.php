@@ -83,7 +83,7 @@ class ListOrders extends ListRecords
                     Action::make('mark_all_paid')
                         ->label(__('custom.mark_all_paid'))
                         ->icon('heroicon-o-check-circle')
-                        ->color('primary')
+                        ->color('success')
                         ->requiresConfirmation()
                         ->action(function (Model $record) {
                             Order::markAllPaid($record);
@@ -92,7 +92,7 @@ class ListOrders extends ListRecords
                                 ->success()
                                 ->send();
                         })
-                        ->hidden(fn (Order $record) => $record->unpaid_count === 0 || $record->trashed())
+                        ->hidden(fn (Order $record) => $record->details_unpaid_count === 0 || $record->trashed())
                         ->after(fn ($livewire) => $livewire->resetTable()),
                     RestoreAction::make()->color('success'),
                     ViewAction::make(),
