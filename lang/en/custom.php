@@ -34,4 +34,5 @@ return [
     'account_number' => 'Account Number',
     'is_primary' => 'Is Primary',
     'provider' => 'Provider',
+    'public_order' => 'Public Order',
 ];
