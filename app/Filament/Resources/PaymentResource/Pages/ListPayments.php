@@ -21,6 +21,12 @@ class ListPayments extends ListRecords
     {
         return $table
             ->striped()
+            ->defaultSort('updated_at', 'desc')
+            ->query(
+                (auth()->user()->username !== 'admin')
+                    ? $this->getModel()::where('user_id', auth()->user()->id)
+                    : $this->getModel()
+            )
             ->columns([
                 TextColumn::make('#')->rowIndex(),
                 TextColumn::make('provider_label')
@@ -33,6 +39,10 @@ class ListPayments extends ListRecords
                 TextColumn::make('user.name')
                     ->label(__('filament-panels::pages/auth/register.form.name.label'))
                     ->hidden(fn () => auth()->user()->username !== 'admin'),
+                TextColumn::make('created_at')
+                    ->label(__('custom.created'))
+                    ->since()
+                    ->dateTimeTooltip(),
             ])->actions([
                 ActionGroup::make([
                     ViewAction::make(),
@@ -45,7 +55,12 @@ class ListPayments extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label(__('custom.add_payment')),
+            Actions\CreateAction::make()->label(__('custom.add_payment'))
+                ->action(function (array $data): void {
+                    if (auth()->user()->username !== 'admin')
+                        $data['user_id'] = auth()->user()->id;
+                    $this->getModel()::create($data);
+                }),
         ];
     }
 }
