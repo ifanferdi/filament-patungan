@@ -34,6 +34,11 @@ class ListOrders extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('go_to_public_order')
+                ->label(__('custom.public_order'))
+                ->color(Color::Gray)
+                ->icon('heroicon-o-arrow-top-right-on-square')
+                ->url(route('public.orders.index'), shouldOpenInNewTab: true),
             Actions\CreateAction::make()->label(__('custom.add_order')),
         ];
     }

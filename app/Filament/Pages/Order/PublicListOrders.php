@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Order;
 
 use App\Filament\Resources\OrderResource\Pages\ListOrders;
+use Illuminate\Database\Eloquent\Builder;
 
 class PublicListOrders extends ListOrders
 {
@@ -17,5 +18,10 @@ class PublicListOrders extends ListOrders
     protected function getHeaderActions(): array
     {
         return [];
+    }
+
+    protected function getTableQuery(): ?Builder
+    {
+        return static::getModel()::query();
     }
 }
