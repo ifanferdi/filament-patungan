@@ -20,6 +20,12 @@ class ViewOrder extends ViewRecord
 {
     protected static string $resource = OrderResource::class;
 
+    protected function authorizeAccess(): void
+    {
+        abort_unless(static::getRecord()->author_id === auth()->id()
+            || auth()->user()->username === 'admin', 403);
+    }
+
     protected function getHeaderActions(): array
     {
         return [
