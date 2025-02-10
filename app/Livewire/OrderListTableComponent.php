@@ -70,6 +70,7 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                 TextColumn::make('final_price')
                     ->width('100px')
                     ->money('IDR. ', locale: 'id')
+                    ->color(fn ($record) => $record->is_paid ? '' : 'primary')
                     ->label('Final Price')
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 CheckboxColumn::make('is_paid')
