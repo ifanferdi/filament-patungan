@@ -18,11 +18,16 @@ class EditOrder extends EditRecord
         ];
     }
 
+    protected function authorizeAccess(): void
+    {
+        abort_unless(static::getRecord()->author_id === auth()->id()
+            || auth()->user()->username === 'admin', 403);
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->previousUrl ?? $this->getResource()::getUrl('view', ['record' => $this->record]);
     }
-
 
     protected function mutateFormDataBeforeSave(array $data): array
     {

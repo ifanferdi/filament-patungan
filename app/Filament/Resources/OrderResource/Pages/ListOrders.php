@@ -22,6 +22,7 @@ use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -116,6 +117,10 @@ class ListOrders extends ListRecords
                     ->visible(fn () => Auth::check()),
             ])
             ->recordUrl(fn (Model $record): string => Auth::check() ? ViewOrder::getUrl([$record->id]) : route('public.orders.show', [$record->id]))
+            ->modifyQueryUsing(function (Builder $query) {
+                if (auth()->user()->username !== 'admin')
+                    return $query->where('author_id', auth()->id());
+            })
             ->emptyStateActions([
                 Action::make('create')
                     ->label(__('custom.add_order'))
