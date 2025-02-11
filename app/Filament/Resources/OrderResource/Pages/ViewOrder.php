@@ -15,6 +15,7 @@ use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class ViewOrder extends ViewRecord
 {
@@ -22,8 +23,9 @@ class ViewOrder extends ViewRecord
 
     protected function authorizeAccess(): void
     {
-        abort_unless(static::getRecord()->author_id === auth()->id()
-            || auth()->user()->username === 'admin', 403);
+        if (Auth::check())
+            abort_unless(static::getRecord()->author_id === auth()->id()
+                || auth()->user()->username === 'admin', 403);
     }
 
     protected function getHeaderActions(): array
