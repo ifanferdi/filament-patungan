@@ -118,7 +118,7 @@ class ListOrders extends ListRecords
             ])
             ->recordUrl(fn (Model $record): string => Auth::check() ? ViewOrder::getUrl([$record->id]) : route('public.orders.show', [$record->id]))
             ->modifyQueryUsing(function (Builder $query) {
-                if (auth()->user()->username !== 'admin')
+                if (Auth::check() && auth()->user()->username !== 'admin')
                     return $query->where('author_id', auth()->id());
             })
             ->emptyStateActions([

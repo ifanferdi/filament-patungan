@@ -6,6 +6,7 @@ use App\Filament\Resources\OrderResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class EditOrder extends EditRecord
 {
@@ -20,8 +21,9 @@ class EditOrder extends EditRecord
 
     protected function authorizeAccess(): void
     {
-        abort_unless(static::getRecord()->author_id === auth()->id()
-            || auth()->user()->username === 'admin', 403);
+        if (Auth::check())
+            abort_unless(static::getRecord()->author_id === auth()->id()
+                || auth()->user()->username === 'admin', 403);
     }
 
     protected function getRedirectUrl(): string
