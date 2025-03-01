@@ -1,5 +1,7 @@
 <?php
 
+use Filament\Support\Colors\Color;
+
 return [
 
     /*
@@ -85,5 +87,7 @@ return [
     */
 
     'livewire_loading_delay' => 'default',
+
+    'colors' => ['primary' => Color::Blue]
 
 ];

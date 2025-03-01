@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 class ListOrders extends ListRecords
@@ -35,8 +36,8 @@ class ListOrders extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('go_to_public_order')
-                ->label(__('custom.public_order'))
+            Actions\Action::make('go_to_public_page')
+                ->label(__('custom.public_page'))
                 ->color(Color::Gray)
                 ->icon('heroicon-o-arrow-top-right-on-square')
                 ->url(route('public.orders.index'), shouldOpenInNewTab: true),
@@ -53,23 +54,25 @@ class ListOrders extends ListRecords
                 TextColumn::make('name')->label(__('custom.order_name'))->searchable(),
                 TextColumn::make('date')->label(__('custom.date'))->date('d F Y'),
                 TextColumn::make('author.name')->label(__('custom.author'))->searchable(),
-                TextColumn::make('details_count')
-                    ->label(__('custom.total_products'))
-                    ->counts('details')
-                    ->badge()
-                    ->color(fn () => Auth::check() ? 'primary' : Color::Blue)
-                    ->suffix(' ' . Str::lower(__('custom.item'))),
                 TextColumn::make('details_sum_final_price')
-                    ->label(__('custom.final_price'))
+                    ->label(__('custom.total'))
                     ->badge()
-                    ->color(fn () => Auth::check() ? 'primary' : Color::Blue)
+                    ->color(fn () => config('filament.colors.primary'))
                     ->sum('details', 'final_price')
                     ->money('IDR', locale: 'id'),
                 TextColumn::make('details_unpaid_count')
-                    ->counts('details_unpaid')
-                    ->label(__('custom.is_paid'))
+                    ->counts(['details_unpaid', 'details'])
+                    ->label(__('custom.items_paid'))
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => $state > 0 ? $state . ' ' . __('custom.unpaid') : __('custom.all_paid'))
+                    ->formatStateUsing(function (Model $record): string {
+                        $unpaid = $record->details_unpaid_count;
+                        $countItems = $record->details_count;
+
+                        $strUnpaid = $unpaid > 0 ? $unpaid . ' ' . __('custom.unpaid') : __('custom.all_paid');
+                        $strItems = "{$countItems} " . Str::lower(__('custom.item'));
+
+                        return "{$strUnpaid} ($strItems)";
+                    })
                     ->color(fn (string $state): string => $state > 0 ? 'danger' : 'success')
                     ->icon(fn (string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle'),
                 TextColumn::make('deleted_at')
@@ -116,10 +119,14 @@ class ListOrders extends ListRecords
                 ])
                     ->visible(fn () => Auth::check()),
             ])
-            ->recordUrl(fn (Model $record): string => Auth::check() ? ViewOrder::getUrl([$record->id]) : route('public.orders.show', [$record->id]))
+            ->recordUrl(fn (Model $record): string => !Route::is('public.orders.index') ?
+                ViewOrder::getUrl([$record->id]) :
+                route('public.orders.show', [$record->id]))
             ->modifyQueryUsing(function (Builder $query) {
                 if (Auth::check() && auth()->user()->username !== 'admin')
                     return $query->where('author_id', auth()->id());
+
+                return $query;
             })
             ->emptyStateActions([
                 Action::make('create')
