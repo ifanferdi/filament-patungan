@@ -35,53 +35,54 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
             ->columns([
                 TextColumn::make('#')
                     ->rowIndex(),
-                TextColumn::make('name')
-                    ->label('Product Name'),
-                TextColumn::make('price')
-                    ->width('100px')
-                    ->money('IDR. ', locale: 'id')
-                    ->label('Price')
-                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
-                TextColumn::make('discount_by_percentage')
-                    ->width('100px')
-                    ->money('IDR. ', locale: 'id')
-                    ->label('Discount (%)')
-                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
-                TextColumn::make('discount')
-                    ->width('100px')
-                    ->money('IDR. ', locale: 'id')
-                    ->label('Discount')
-                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
-                TextColumn::make('additional_discount')
-                    ->width('100px')
-                    ->money('IDR. ', locale: 'id')
-                    ->label('Additional Discount')
-                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
-                TextColumn::make('price_after_discount')
-                    ->width('100px')
-                    ->money('IDR. ', locale: 'id')
-                    ->label('Price - All Discounts')
-                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
-                TextColumn::make('fee')
-                    ->width('100px')
-                    ->money('IDR. ', locale: 'id')
-                    ->label('Fee')
-                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
-                TextColumn::make('final_price')
-                    ->width('100px')
-                    ->money('IDR. ', locale: 'id')
-                    ->color(fn ($record) => $record->is_paid ? '' : 'primary')
-                    ->label('Final Price')
-                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 CheckboxColumn::make('is_paid')
                     ->label(__('custom.is_paid'))
+                    ->disabled(Auth::guest())
                     ->afterStateUpdated(function ($record, $state) {
                         Notification::make()
                             ->title(__('custom.paid_success'))
                             ->success()
                             ->send();
-                    })
-                    ->disabled(Auth::guest()),
+                    }),
+                TextColumn::make('name')
+                    ->label('Product Name'),
+                TextColumn::make('final_price')
+                    ->width('100px')
+                    ->money('IDR. ', locale: 'id')
+                    ->weight('bold')
+                    ->color(fn ($record) => $record->is_paid ? '' : 'primary')
+                    ->label('Final Price')
+                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
+                TextColumn::make('price')
+                    ->color('gray')
+                    ->money('IDR. ', locale: 'id')
+                    ->label('Price')
+                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
+                TextColumn::make('discount_by_percentage')
+                    ->color('gray')
+                    ->money('IDR. ', locale: 'id')
+                    ->label('Discount (%)')
+                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
+                TextColumn::make('discount')
+                    ->color('gray')
+                    ->money('IDR. ', locale: 'id')
+                    ->label('Discount')
+                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
+                TextColumn::make('additional_discount')
+                    ->color('gray')
+                    ->money('IDR. ', locale: 'id')
+                    ->label('Additional Discount')
+                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
+                TextColumn::make('price_after_discount')
+                    ->color('gray')
+                    ->money('IDR. ', locale: 'id')
+                    ->label('Price - All Discounts')
+                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
+                TextColumn::make('fee')
+                    ->color('gray')
+                    ->money('IDR. ', locale: 'id')
+                    ->label('Fee')
+                    ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
             ])
             ->paginated(false);
     }
