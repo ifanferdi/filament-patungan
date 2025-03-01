@@ -22,6 +22,7 @@ return [
     'final_price' => 'Final Price',
     'item' => 'Item',
     'trashed' => 'Trashed',
+    'is_paid' => 'Is Paid',
     'items_paid' => 'Items Paid',
     'paid_success' => 'Paid Successfully Updated',
     'all_paid_success' => 'Mark All Paid Successfully',
