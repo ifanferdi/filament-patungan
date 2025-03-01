@@ -22,7 +22,7 @@ return [
     'final_price' => 'Final Price',
     'item' => 'Item',
     'trashed' => 'Trashed',
-    'is_paid' => 'Is Paid',
+    'items_paid' => 'Items Paid',
     'paid_success' => 'Paid Successfully Updated',
     'all_paid_success' => 'Mark All Paid Successfully',
     'unpaid' => 'Unpaid',
@@ -34,5 +34,5 @@ return [
     'account_number' => 'Account Number',
     'is_primary' => 'Is Primary',
     'provider' => 'Provider',
-    'public_order' => 'Public Order',
+    'public_page' => 'Public Page',
 ];

@@ -14,6 +14,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Colors\Color;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,6 +32,12 @@ class ViewOrder extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('go_to_public_page')
+                ->label(__('custom.public_page'))
+                ->color(Color::Gray)
+                ->icon('heroicon-o-arrow-top-right-on-square')
+                ->url(fn (Model $record) => route('public.orders.show', $record->id),
+                    shouldOpenInNewTab: true),
             Actions\Action::make('mark_all_paid')
                 ->label(__('custom.mark_all_paid'))
                 ->icon('heroicon-o-check-circle')
