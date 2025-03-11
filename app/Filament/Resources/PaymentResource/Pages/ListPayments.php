@@ -11,7 +11,9 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ListPayments extends ListRecords
 {
@@ -21,11 +23,12 @@ class ListPayments extends ListRecords
     {
         return $table
             ->striped()
+            ->searchable()
             ->defaultSort('updated_at', 'desc')
             ->query(
                 (auth()->user()->username !== 'admin')
                     ? $this->getModel()::where('user_id', auth()->user()->id)
-                    : $this->getModel()
+                    : $this->getModel()::query()
             )
             ->columns([
                 TextColumn::make('#')->rowIndex(),
@@ -46,9 +49,26 @@ class ListPayments extends ListRecords
             ])->actions([
                 ActionGroup::make([
                     ViewAction::make(),
-                    EditAction::make(),
+                    EditAction::make()
+                        ->after(fn (Model $record) => $this->removeDefaultPaymentExcept($record)),
                     DeleteAction::make(),
                 ])
+            ])
+            ->filters([
+                SelectFilter::make('provider')
+                    ->multiple()
+                    ->options(config('payment.providers')),
+                SelectFilter::make('user')
+                    ->relationship('user', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->hidden(fn () => auth()->user()->username !== 'admin'),
+                SelectFilter::make('is_primary')
+                    ->searchable()
+                    ->options([
+                        true => 'Primary',
+                        false => 'Not Primary',
+                    ])
             ]);
     }
 
@@ -60,7 +80,15 @@ class ListPayments extends ListRecords
                     if (auth()->user()->username !== 'admin')
                         $data['user_id'] = auth()->user()->id;
                     $this->getModel()::create($data);
-                }),
+                })
+                ->after(fn (Model $record) => $this->removeDefaultPaymentExcept($record)),
         ];
+    }
+
+    private function removeDefaultPaymentExcept(Model $record): void
+    {
+        $this->getModel()::where('id', '!=', $record->id)
+            ->where('user_id', $record->user_id)
+            ->update(['is_primary' => false]);
     }
 }

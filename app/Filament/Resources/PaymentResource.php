@@ -47,7 +47,6 @@ class PaymentResource extends Resource
                 Checkbox::make('is_primary')
                     ->label(__('custom.is_primary') . '?')
                     ->default(false)
-                // TODO: BUAT LOGIC HANYA 1 PRIMARY PAYMENT PER USER
             ]);
     }
 
