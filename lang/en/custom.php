@@ -36,4 +36,5 @@ return [
     'is_primary' => 'Is Primary',
     'provider' => 'Provider',
     'public_page' => 'Public Page',
+    'created' => 'Created',
 ];
