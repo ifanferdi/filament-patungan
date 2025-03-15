@@ -37,4 +37,5 @@ return [
     'provider' => 'Provider',
     'public_page' => 'Public Page',
     'created' => 'Created',
+    'total_unpaid_items' => 'Total Unpaid Items',
 ];

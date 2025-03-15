@@ -50,6 +50,7 @@ class Order extends Model
     public static function markAllPaid(Model $order): void
     {
         $order->details()->update(['is_paid' => true]);
+        $order->update(['unpaid_count' => 0]);
         $order->save();
     }
 

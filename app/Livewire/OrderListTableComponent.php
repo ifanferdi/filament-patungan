@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Order;
 use App\Models\OrderDetail;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -39,6 +40,16 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                     ->label(__('custom.is_paid'))
                     ->disabled(Auth::guest())
                     ->afterStateUpdated(function ($record, $state) {
+                        $order = Order::select(['id'])
+                            ->whereId($record->order_id)
+                            ->withCount(['details_unpaid', 'details'])
+                            ->first();
+                        $order->update([
+                            'paid_count' => $order->details_count - $order->details_unpaid_count,
+                            'unpaid_count' => $order->details_unpaid_count
+                        ]);
+                        $order->save();
+
                         Notification::make()
                             ->title(__('custom.paid_success'))
                             ->success()
@@ -86,12 +97,6 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
             ])
             ->paginated(false);
     }
-
-    //    Discount
-    //price-all discount
-    //fee
-    //final price
-    //preseentase discount
 
     public function errorBagExcept($field)
     {

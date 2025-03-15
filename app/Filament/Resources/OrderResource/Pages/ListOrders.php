@@ -73,7 +73,7 @@ class ListOrders extends ListRecords
 
                         return "{$strUnpaid} ($strItems)";
                     })
-                    ->color(fn (string $state): string => $state > 0 ? 'danger' : 'success')
+                    ->color(fn (string $state): string => $state > 0 ? 'warning' : 'success')
                     ->icon(fn (string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle'),
                 TextColumn::make('deleted_at')
                     ->label(__('custom.trashed'))

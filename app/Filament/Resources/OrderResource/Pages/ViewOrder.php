@@ -103,10 +103,20 @@ class ViewOrder extends ViewRecord
                             ->label(__('custom.additional_discount'))
                             ->inlineLabel()
                             ->columnSpan(1),
-                    ])->columnSpan(1)->columns(1)
+                    ])->columnSpan(1)->columns(1),
+                    Grid::make()->schema([
+                        TextEntry::make('discount_with_percentage')
+                            ->label(__('custom.discount'))
+                            ->inlineLabel()
+                            ->columnSpan(1),
+                        TextEntry::make('additional_discount_with_percentage')
+                            ->label(__('custom.additional_discount'))
+                            ->inlineLabel()
+                            ->columnSpan(1),
+                    ])->columnSpan(1)->columns(1),
                 ])
                 ->collapsible()
-                ->columns(),
+                ->columns(3),
             Section::make(__('custom.order_list'))
                 ->schema([
                     Livewire::make(OrderListTableComponent::class, ['id' => $this->record->id])
