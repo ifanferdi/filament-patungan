@@ -20,6 +20,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ListPayments extends ListRecords
 {
@@ -43,11 +44,11 @@ class ListPayments extends ListRecords
                 TextColumn::make('account_number')
                     ->label(__('custom.account_number')),
                 IconColumn::make('is_primary')
-                    ->label(__('custom.is_primary') . '?')
+                    ->label(__('custom.is_primary').'?')
                     ->boolean(),
                 TextColumn::make('user.name')
                     ->label(__('filament-panels::pages/auth/register.form.name.label'))
-                    ->hidden(fn () => auth()->user()->username !== 'admin'),
+                    ->hidden(fn() => auth()->user()->username !== 'admin'),
                 TextColumn::make('created_at')
                     ->label(__('custom.created'))
                     ->since()
@@ -56,15 +57,18 @@ class ListPayments extends ListRecords
                 ActionGroup::make([
                     Action::make('make_primary')
                         ->action(function (Model $record): void {
-                            if (auth()->user()->username !== 'admin')
-                                $this->getModel()::whereId($record->id)->update(['is_primary' => 1]);
+                            $this->getModel()::whereId($record->id)
+                                ->where('user_id', $record->user_id)
+                                ->update(['is_primary' => 1]);
+                            $record->is_primary = true;
+                            $this->removeDefaultPaymentExcept($record);
                         })
-                        ->after(fn (Model $record) => $this->removeDefaultPaymentExcept($record))
                         ->icon('heroicon-s-key')
-                        ->color('success'),
+                        ->color('success')
+                        ->hidden(fn(Model $record): bool => $record->is_primary),
                     ViewAction::make(),
                     EditAction::make()
-                        ->after(fn (Model $record) => $this->removeDefaultPaymentExcept($record)),
+                        ->after(fn(Model $record) => $this->removeDefaultPaymentExcept($record)),
                     DeleteAction::make(),
                 ])
             ])
@@ -74,7 +78,7 @@ class ListPayments extends ListRecords
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ])
-                    ->visible(fn () => Auth::check()),
+                    ->visible(fn() => Auth::check()),
             ])
             ->filters([
                 SelectFilter::make('provider')
@@ -84,7 +88,7 @@ class ListPayments extends ListRecords
                     ->relationship('user', 'name')
                     ->multiple()
                     ->preload()
-                    ->hidden(fn () => auth()->user()->username !== 'admin'),
+                    ->hidden(fn() => auth()->user()->username !== 'admin'),
                 SelectFilter::make('is_primary')
                     ->searchable()
                     ->options([
@@ -103,13 +107,14 @@ class ListPayments extends ListRecords
                         $data['user_id'] = auth()->user()->id;
                     $this->getModel()::create($data);
                 })
-                ->after(fn ($record) => $this->removeDefaultPaymentExcept($record)),
+                ->after(fn($record) => $this->removeDefaultPaymentExcept($record)),
         ];
     }
 
     private function removeDefaultPaymentExcept($record): void
     {
-        if ($record && $record->is_primary === 1)
+        Log::info($record);
+        if ($record && $record->is_primary)
             $this->getModel()::where('id', '!=', $record->id)
                 ->where('user_id', $record->user_id)
                 ->update(['is_primary' => false]);

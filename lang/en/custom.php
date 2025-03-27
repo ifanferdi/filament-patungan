@@ -30,6 +30,8 @@ return [
     'all_paid' => 'All Paid',
     'mark_all_paid' => 'Mark All Paid',
     'order_list' => 'Order List',
+    'preferred_payment' => 'Preferred Payment',
+    'other_payment' => 'Other Payment',
     'add_payment' => 'Add Payment',
     'add_order' => 'Add Order',
     'account_number' => 'Account Number',

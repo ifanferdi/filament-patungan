@@ -61,7 +61,7 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                     ->width('100px')
                     ->money('IDR. ', locale: 'id')
                     ->weight('bold')
-                    ->color(fn ($record) => $record->is_paid ? '' : config('filament.colors.primary'))
+                    ->color(fn($record) => $record->is_paid ? '' : 'primary')
                     ->label('Final Price')
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 TextColumn::make('price')

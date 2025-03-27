@@ -17,6 +17,7 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Colors\Color;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class ViewOrder extends ViewRecord
 {
@@ -50,7 +51,7 @@ class ViewOrder extends ViewRecord
                         ->success()
                         ->send();
                 })
-                ->hidden(fn (Order $record) => $record->details_unpaid()->count() === 0),
+                ->hidden(fn(Order $record) => $record->details_unpaid()->count() === 0),
             Actions\EditAction::make(),
             Actions\DeleteAction::make(),
             Actions\ForceDeleteAction::make(),
@@ -63,13 +64,13 @@ class ViewOrder extends ViewRecord
         return $infolist->schema([
             Section::make('Order Data')
                 ->description(function ($record): string {
-                    return $record->name . ' (' . Carbon::parse($record->date)->format('d F Y') . ') - ' . $record->author->name;
+                    return $record->name.' ('.Carbon::parse($record->date)->format('d F Y').') - '.$record->author->name;
                 })
                 ->schema([
                     Grid::make()
                         ->schema([
                             TextEntry::make('promo')
-                                ->label(__('custom.discount') . '%')
+                                ->label(__('custom.discount').'%')
                                 ->suffix('%')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
@@ -105,14 +106,33 @@ class ViewOrder extends ViewRecord
                             ->columnSpan(1),
                     ])->columnSpan(1)->columns(1),
                     Grid::make()->schema([
-                        TextEntry::make('discount_with_percentage')
-                            ->label(__('custom.discount'))
+                        TextEntry::make('preferred_payment')
+                            ->label(__('custom.preferred_payment'))
                             ->inlineLabel()
-                            ->columnSpan(1),
-                        TextEntry::make('additional_discount_with_percentage')
-                            ->label(__('custom.additional_discount'))
+                            ->copyable()
+                            ->copyMessage('Copied!')
+                            ->weight('bold')
+                            ->columnSpan(1)
+                            ->state(function (Model $record): string {
+                                $payment = $record->author->preferredPayment();
+                                return "[".Str::upper($payment->provider)."] {$payment->account_number}";
+                            }),
+                        TextEntry::make('other_payment')
+                            ->label(__('custom.other_payment'))
                             ->inlineLabel()
-                            ->columnSpan(1),
+                            ->listWithLineBreaks()
+                            ->bulleted()
+                            ->columns()
+                            ->columnSpan(1)
+                            ->expandableLimitedList()
+                            ->state(function (Model $record) {
+                                $payments = $record->author->otherPayment();
+                                $data = $payments->map(function ($payment) {
+                                    return "[".Str::upper($payment->provider)."] {$payment->account_number}";
+                                });
+                                return $data;
+
+                            }),
                     ])->columnSpan(1)->columns(1),
                 ])
                 ->collapsible()
