@@ -27,6 +27,30 @@ class OrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-currency-dollar';
 
+    public static function getNavigationBadge(): ?string
+    {
+        if (auth()->guest()) return null;
+
+        $builder = static::getModel()::where('unpaid_count', '>', 0);
+
+        if (auth()->user()->username !== 'admin')
+            $builder = $builder->where('author_id', auth()->id());
+
+        $unpaid_items_count = $builder->sum('unpaid_count');
+
+        return $unpaid_items_count > 0 ? $unpaid_items_count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return __('custom.total_unpaid_items');
+    }
+
     public static function getRouteBaseName(?string $panel = null): string
     {
         $panel = $panel ? Filament::getPanel($panel) : Filament::getCurrentPanel();
@@ -246,7 +270,6 @@ class OrderResource extends Resource
             //
         ]);
     }
-
 
     public static function getRelations(): array
     {

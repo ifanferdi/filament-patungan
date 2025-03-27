@@ -17,6 +17,7 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Colors\Color;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class ViewOrder extends ViewRecord
 {
@@ -25,7 +26,7 @@ class ViewOrder extends ViewRecord
     protected function authorizeAccess(): void
     {
         if (Auth::check())
-            abort_unless(static::getRecord()->author_id === auth()->id()
+            abort_unless($this->getRecord()->author_id === auth()->id()
                 || auth()->user()->username === 'admin', 403);
     }
 
@@ -36,7 +37,7 @@ class ViewOrder extends ViewRecord
                 ->label(__('custom.public_page'))
                 ->color(Color::Gray)
                 ->icon('heroicon-o-arrow-top-right-on-square')
-                ->url(fn (Model $record) => route('public.orders.show', $record->id),
+                ->url(fn(Model $record) => route('public.orders.show', $record->id),
                     shouldOpenInNewTab: true),
             Actions\Action::make('mark_all_paid')
                 ->label(__('custom.mark_all_paid'))
@@ -50,7 +51,7 @@ class ViewOrder extends ViewRecord
                         ->success()
                         ->send();
                 })
-                ->hidden(fn (Order $record) => $record->details_unpaid()->count() === 0),
+                ->hidden(fn(Order $record) => $record->details_unpaid()->count() === 0),
             Actions\EditAction::make(),
             Actions\DeleteAction::make(),
             Actions\ForceDeleteAction::make(),
@@ -63,13 +64,13 @@ class ViewOrder extends ViewRecord
         return $infolist->schema([
             Section::make('Order Data')
                 ->description(function ($record): string {
-                    return $record->name . ' (' . Carbon::parse($record->date)->format('d F Y') . ') - ' . $record->author->name;
+                    return $record->name.' ('.Carbon::parse($record->date)->format('d F Y').') - '.$record->author->name;
                 })
                 ->schema([
                     Grid::make()
                         ->schema([
                             TextEntry::make('promo')
-                                ->label(__('custom.discount') . '%')
+                                ->label(__('custom.discount').'%')
                                 ->suffix('%')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
@@ -103,10 +104,39 @@ class ViewOrder extends ViewRecord
                             ->label(__('custom.additional_discount'))
                             ->inlineLabel()
                             ->columnSpan(1),
-                    ])->columnSpan(1)->columns(1)
+                    ])->columnSpan(1)->columns(1),
+                    Grid::make()->schema([
+                        TextEntry::make('preferred_payment')
+                            ->label(__('custom.preferred_payment'))
+                            ->inlineLabel()
+                            ->copyable()
+                            ->copyMessage('Copied!')
+                            ->weight('bold')
+                            ->columnSpan(1)
+                            ->state(function (Model $record): string {
+                                $payment = $record->author->preferredPayment();
+                                return "[".Str::upper($payment->provider)."] {$payment->account_number}";
+                            }),
+                        TextEntry::make('other_payment')
+                            ->label(__('custom.other_payment'))
+                            ->inlineLabel()
+                            ->listWithLineBreaks()
+                            ->bulleted()
+                            ->columns()
+                            ->columnSpan(1)
+                            ->expandableLimitedList()
+                            ->state(function (Model $record) {
+                                $payments = $record->author->otherPayment();
+                                $data = $payments->map(function ($payment) {
+                                    return "[".Str::upper($payment->provider)."] {$payment->account_number}";
+                                });
+                                return $data;
+
+                            }),
+                    ])->columnSpan(1)->columns(1),
                 ])
                 ->collapsible()
-                ->columns(),
+                ->columns(3),
             Section::make(__('custom.order_list'))
                 ->schema([
                     Livewire::make(OrderListTableComponent::class, ['id' => $this->record->id])

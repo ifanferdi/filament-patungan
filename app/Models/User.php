@@ -6,7 +6,9 @@ namespace App\Models;
 
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -62,4 +64,16 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(Payment::class);
     }
+
+    // FUNCTION
+    public function preferredPayment(): Model
+    {
+        return $this->payments()->where('is_primary', true)->first();
+    }
+
+    public function otherPayment(): Collection
+    {
+        return $this->payments()->where('is_primary', false)->get();
+    }
+
 }
