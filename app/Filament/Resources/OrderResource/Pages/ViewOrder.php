@@ -26,7 +26,7 @@ class ViewOrder extends ViewRecord
     protected function authorizeAccess(): void
     {
         if (Auth::check())
-            abort_unless(static::getRecord()->author_id === auth()->id()
+            abort_unless($this->getRecord()->author_id === auth()->id()
                 || auth()->user()->username === 'admin', 403);
     }
 
@@ -37,7 +37,7 @@ class ViewOrder extends ViewRecord
                 ->label(__('custom.public_page'))
                 ->color(Color::Gray)
                 ->icon('heroicon-o-arrow-top-right-on-square')
-                ->url(fn (Model $record) => route('public.orders.show', $record->id),
+                ->url(fn(Model $record) => route('public.orders.show', $record->id),
                     shouldOpenInNewTab: true),
             Actions\Action::make('mark_all_paid')
                 ->label(__('custom.mark_all_paid'))
