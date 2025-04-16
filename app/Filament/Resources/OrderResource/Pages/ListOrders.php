@@ -123,9 +123,9 @@ class ListOrders extends ListRecords
                 route('public.orders.show', [$record->id]))
             ->modifyQueryUsing(function (Builder $query) {
                 if (Auth::check() && auth()->user()->username !== 'admin')
-                    return $query->where('author_id', auth()->id());
+                    return $query->where('author_id', auth()->id())->orderBy('created_at', 'desc');
 
-                return $query;
+                return $query->orderBy('created_at', 'desc');
             })
             ->emptyStateActions([
                 Action::make('create')
