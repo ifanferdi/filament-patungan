@@ -14,8 +14,4 @@ class PublicViewOrder extends ViewOrder
 
     protected static bool $shouldRegisterNavigation = false;
 
-    protected function getHeaderActions(): array
-    {
-        return [];
-    }
 }

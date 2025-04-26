@@ -38,7 +38,7 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                     ->rowIndex(),
                 CheckboxColumn::make('is_paid')
                     ->label(__('custom.is_paid'))
-                    ->disabled(Auth::guest())
+                    ->disabled(fn ($record) => Auth::id() !== $record->order->author_id)
                     ->afterStateUpdated(function ($record, $state) {
                         $order = Order::select(['id'])
                             ->whereId($record->order_id)
@@ -61,7 +61,7 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                     ->width('100px')
                     ->money('IDR. ', locale: 'id')
                     ->weight('bold')
-                    ->color(fn($record) => $record->is_paid ? '' : 'primary')
+                    ->color(fn ($record) => $record->is_paid ? '' : 'primary')
                     ->label('Final Price')
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 TextColumn::make('price')

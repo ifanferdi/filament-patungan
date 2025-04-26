@@ -17,6 +17,7 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Colors\Color;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 class ViewOrder extends ViewRecord
@@ -25,20 +26,24 @@ class ViewOrder extends ViewRecord
 
     protected function authorizeAccess(): void
     {
-        if (Auth::check())
+        if (Route::is('filament.admin.resources.orders.view')) {
             abort_unless($this->getRecord()->author_id === auth()->id()
                 || auth()->user()->username === 'admin', 403);
+        }
     }
 
     protected function getHeaderActions(): array
     {
+        if (Auth::guest() || Auth::id() !== static::getRecord()->author_id) return [];
+
         return [
             Actions\Action::make('go_to_public_page')
                 ->label(__('custom.public_page'))
                 ->color(Color::Gray)
                 ->icon('heroicon-o-arrow-top-right-on-square')
-                ->url(fn(Model $record) => route('public.orders.show', $record->id),
-                    shouldOpenInNewTab: true),
+                ->url(fn (Model $record) => route('public.orders.show', $record->id),
+                    shouldOpenInNewTab: true)
+                ->hidden(Route::is('public.orders.show')),
             Actions\Action::make('mark_all_paid')
                 ->label(__('custom.mark_all_paid'))
                 ->icon('heroicon-o-check-circle')
@@ -51,8 +56,8 @@ class ViewOrder extends ViewRecord
                         ->success()
                         ->send();
                 })
-                ->hidden(fn(Order $record) => $record->details_unpaid()->count() === 0),
-            Actions\EditAction::make(),
+                ->hidden(fn (Order $record) => $record->details_unpaid()->count() === 0),
+            Actions\EditAction::make()->color(Color::Blue),
             Actions\DeleteAction::make(),
             Actions\ForceDeleteAction::make(),
             Actions\RestoreAction::make(),
@@ -64,13 +69,13 @@ class ViewOrder extends ViewRecord
         return $infolist->schema([
             Section::make('Order Data')
                 ->description(function ($record): string {
-                    return $record->name.' ('.Carbon::parse($record->date)->format('d F Y').') - '.$record->author->name;
+                    return $record->name . ' (' . Carbon::parse($record->date)->format('d F Y') . ') - ' . $record->author->name;
                 })
                 ->schema([
                     Grid::make()
                         ->schema([
                             TextEntry::make('promo')
-                                ->label(__('custom.discount').'%')
+                                ->label(__('custom.discount') . '%')
                                 ->suffix('%')
                                 ->inlineLabel()
                                 ->columnSpanFull(),
@@ -115,7 +120,7 @@ class ViewOrder extends ViewRecord
                             ->columnSpan(1)
                             ->state(function (Model $record): string {
                                 $payment = $record->author->preferredPayment();
-                                return "[".Str::upper($payment->provider)."] {$payment->account_number}";
+                                return "[" . Str::upper($payment->provider) . "] {$payment->account_number}";
                             }),
                         TextEntry::make('other_payment')
                             ->label(__('custom.other_payment'))
@@ -128,10 +133,9 @@ class ViewOrder extends ViewRecord
                             ->state(function (Model $record) {
                                 $payments = $record->author->otherPayment();
                                 $data = $payments->map(function ($payment) {
-                                    return "[".Str::upper($payment->provider)."] {$payment->account_number}";
+                                    return "[" . Str::upper($payment->provider) . "] {$payment->account_number}";
                                 });
                                 return $data;
-
                             }),
                     ])->columnSpan(1)->columns(1),
                 ])
