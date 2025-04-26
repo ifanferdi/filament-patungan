@@ -67,26 +67,25 @@ class ListOrders extends ListRecords
                         $unpaid = $record->details_unpaid_count;
                         $countItems = $record->details_count;
 
-                        $strUnpaid = $unpaid > 0 ? $unpaid.' '.__('custom.unpaid') : __('custom.all_paid');
-                        $strItems = "{$countItems} ".Str::lower(__('custom.item'));
+                        $strUnpaid = $unpaid > 0 ? $unpaid . ' ' . __('custom.unpaid') : __('custom.all_paid');
+                        $strItems = "{$countItems} " . Str::lower(__('custom.item'));
 
                         return "{$strUnpaid} ($strItems)";
                     })
-                    ->color(fn(string $state): string => $state > 0 ? 'warning' : 'success')
-                    ->icon(fn(string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle'),
+                    ->color(fn (string $state): string => $state > 0 ? 'warning' : 'success')
+                    ->icon(fn (string $state): string => $state > 0 ? '' : 'heroicon-o-check-circle'),
                 TextColumn::make('deleted_at')
                     ->label(__('custom.trashed'))
                     ->color('danger')
-                    ->formatStateUsing(fn(string $state): string => Carbon::parse($state)->diffForHumans())
+                    ->formatStateUsing(fn (string $state): string => Carbon::parse($state)->diffForHumans())
                     ->hidden(function ($livewire) {
                         return !isset($livewire->getTableFilterState('trashed')['value']) || $livewire->getTableFilterState('trashed')['value'] === '';
                     }),
             ])
             ->filters([
-                TrashedFilter::make()
-                    ->visible(fn() => Auth::check()),
+                TrashedFilter::make()->visible(fn () => Auth::check()),
             ])
-            ->actions([
+            ->actions(Route::is('public.orders.index') ? [] : [
                 ActionGroup::make([
                     Action::make('mark_all_paid')
                         ->label(__('custom.mark_all_paid'))
@@ -100,28 +99,31 @@ class ListOrders extends ListRecords
                                 ->success()
                                 ->send();
                         })
-                        ->hidden(fn(Order $record) => $record->details_unpaid_count === 0 || $record->trashed())
-                        ->after(fn($livewire) => $livewire->resetTable()),
+                        ->hidden(fn (Order $record) => $record->details_unpaid_count === 0 || $record->trashed())
+                        ->after(fn ($livewire) => $livewire->resetTable()),
                     RestoreAction::make()->color('success'),
                     ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make(),
                     ForceDeleteAction::make(),
                 ])
-                    ->visible(fn() => Auth::check())
+                    ->visible(fn () => Auth::check())
             ])
-            ->bulkActions([
+            ->bulkActions(Route::is('public.orders.index') ? [] : [
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ])
-                    ->visible(fn() => Auth::check()),
+                    ->visible(fn () => Auth::check()),
             ])
-            ->recordUrl(fn(Model $record): string => !Route::is('public.orders.index') ?
+            ->recordUrl(fn (Model $record): string => !Route::is('public.orders.index') ?
                 ViewOrder::getUrl([$record->id]) :
                 route('public.orders.show', [$record->id]))
             ->modifyQueryUsing(function (Builder $query) {
+                if (Route::is('public.orders.index'))
+                    return $query;
+
                 if (Auth::check() && auth()->user()->username !== 'admin')
                     return $query->where('author_id', auth()->id())->orderBy('created_at', 'desc');
 
@@ -133,7 +135,7 @@ class ListOrders extends ListRecords
                     ->url(route('filament.admin.resources.orders.create'))
                     ->icon('heroicon-m-plus')
                     ->button()
-                    ->visible(fn() => Auth::check()),
+                    ->visible(fn () => Auth::check()),
             ]);
     }
 }
