@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Order;
 use App\Models\OrderDetail;
+use Filament\Tables\Actions\Action;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -68,38 +69,41 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                     ->color('gray')
                     ->money('IDR. ', locale: 'id')
                     ->label('Price')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 TextColumn::make('discount_by_percentage')
                     ->color('gray')
                     ->money('IDR. ', locale: 'id')
                     ->label('Discount (%)')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 TextColumn::make('discount')
                     ->color('gray')
                     ->money('IDR. ', locale: 'id')
                     ->label('Discount')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 TextColumn::make('additional_discount')
                     ->color('gray')
                     ->money('IDR. ', locale: 'id')
                     ->label('Additional Discount')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 TextColumn::make('price_after_discount')
                     ->color('gray')
                     ->money('IDR. ', locale: 'id')
                     ->label('Price - All Discounts')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
                 TextColumn::make('fee')
                     ->color('gray')
                     ->money('IDR. ', locale: 'id')
                     ->label('Fee')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->summarize([Sum::make()->label('')->money('IDR', locale: 'id')]),
             ])
+            ->toggleColumnsTriggerAction(fn (Action $action) => $action->button()->label('Columns'))
             ->paginated(false);
-    }
-
-    public function errorBagExcept($field)
-    {
     }
 
     public function render()
