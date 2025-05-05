@@ -118,11 +118,11 @@ class ListOrders extends ListRecords
                     ->visible(fn () => Auth::check()),
             ])
             ->recordUrl(fn (Model $record): string => !Route::is('public.orders.index') ?
-                ViewOrder::getUrl([$record->id]) :
+                route('filament.admin.resources.orders.view', [$record->id]) :
                 route('public.orders.show', [$record->id]))
             ->modifyQueryUsing(function (Builder $query) {
                 if (Route::is('public.orders.index'))
-                    return $query;
+                    return $query->orderBy('created_at', 'desc');
 
                 if (Auth::check() && auth()->user()->username !== 'admin')
                     return $query->where('author_id', auth()->id())->orderBy('created_at', 'desc');
