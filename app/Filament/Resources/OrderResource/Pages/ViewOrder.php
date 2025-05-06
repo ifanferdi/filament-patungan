@@ -115,6 +115,8 @@ class ViewOrder extends ViewRecord
                             ->label(__('custom.preferred_payment'))
                             ->inlineLabel()
                             ->copyable()
+                            ->copyableState(fn (Model $record
+                            ): string => $record->author->preferredPayment()->account_number)
                             ->copyMessage('Copied!')
                             ->weight('bold')
                             ->columnSpan(1)
