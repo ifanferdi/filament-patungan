@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
+use App\Models\OrderDetail;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -38,7 +39,11 @@ class EditOrder extends EditRecord
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
+        $order = parent::handleRecordUpdate($record, $this->getModel()::processOrder($data));
 
-        return parent::handleRecordUpdate($record, $this->getModel()::processOrder($data));
+        foreach ($order->details()->get(['id', 'order_id', 'name', 'price']) as $detail)
+            parent::handleRecordUpdate($detail, OrderDetail::processOrderDetailData($detail));
+
+        return $order;
     }
 }
