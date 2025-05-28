@@ -66,7 +66,7 @@ class User extends Authenticatable implements FilamentUser
     }
 
     // FUNCTION
-    public function preferredPayment(): Model
+    public function preferredPayment(): Model|null
     {
         return $this->payments()->where('is_primary', true)->first();
     }

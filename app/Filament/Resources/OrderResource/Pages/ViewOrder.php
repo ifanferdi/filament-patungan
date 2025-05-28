@@ -116,12 +116,13 @@ class ViewOrder extends ViewRecord
                             ->inlineLabel()
                             ->copyable()
                             ->copyableState(fn (Model $record
-                            ): string => $record->author->preferredPayment()->account_number)
+                            ): string => $record->author?->preferredPayment()?->account_number ?? '-')
                             ->copyMessage('Copied!')
                             ->weight('bold')
                             ->columnSpan(1)
                             ->state(function (Model $record): string {
                                 $payment = $record->author->preferredPayment();
+                                if (!$payment) return '-';
                                 return "[" . Str::upper($payment->provider) . "] {$payment->account_number}";
                             }),
                         TextEntry::make('other_payment')
