@@ -25,7 +25,7 @@ class OrderDetail extends Model
     }
 
     // FUNCTION
-    public static function processOrderDetailData($data): OrderDetail
+    public static function processOrderDetailData(OrderDetail $data): array
     {
         $order = $data->order;
         $price = (int)$data->price;
@@ -38,7 +38,7 @@ class OrderDetail extends Model
             ? $price - ($discount + $additional_discount)
             : $price - ($discount_by_percentage + $additional_discount);
 
-        $fee = $order->total_fee / $order->total_items;
+        $fee = $order->total_fee * ($price / $order->total);
         $final_price = $price_after_discount + $fee;
 
         $data->discount_by_percentage = $discount_by_percentage;
@@ -48,7 +48,7 @@ class OrderDetail extends Model
         $data->fee = $fee;
         $data->final_price = $final_price;
 
-        return $data;
+        return $data->toArray();
     }
 
     // RELATIONSHIP
