@@ -60,6 +60,11 @@ class Order extends Model
         return $this->hasMany(OrderDetail::class, 'order_id');
     }
 
+    public function details_person(): HasMany
+    {
+        return $this->details()->where('person_id', '!=', null)->withCount('person');
+    }
+
     public function details_unpaid(): HasMany
     {
         return $this->details()->where('is_paid', false);

@@ -14,6 +14,7 @@ return [
     'additional_discount' => 'Additional Discount',
     'total' => 'Total',
     'total_with_discount' => 'Total with Discount (%)',
+    'person' => 'Person',
     'product_name' => 'Product Name',
     'price' => 'Price',
     'date' => 'Date',

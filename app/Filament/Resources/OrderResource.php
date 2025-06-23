@@ -4,12 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
+use App\Models\Person;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Awcodes\TableRepeater\Header;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Split;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -36,7 +38,8 @@ class OrderResource extends Resource
         if (auth()->user()->username !== 'admin')
             $builder = $builder->where('author_id', auth()->id());
 
-        $unpaid_items_count = $builder->sum('unpaid_count');
+        $record = static::getEloquentQuery()->first('unpaid_count');
+        $unpaid_items_count = $record->unpaid_count;
 
         return $unpaid_items_count > 0 ? $unpaid_items_count : null;
     }
@@ -233,12 +236,13 @@ class OrderResource extends Resource
                         ->reorderable()
                         ->cloneable()
                         ->headers([
-                            Header::make('name')->markAsRequired(),
-                            Header::make('price')->markAsRequired(),
+                            Header::make(__('custom.product_name'))->markAsRequired()->width('40%'),
+                            Header::make(__('custom.price'))->markAsRequired()->width('2    0%'),
+                            Header::make(__('custom.person'))->markAsRequired()->width('40%'),
                         ])
                         ->schema([
                             TextInput::make('name')
-                                ->label(__('custom.name'))
+                                ->label(__('custom.product_name'))
                                 ->string()
                                 ->required()
                                 ->placeholder(__('custom.product_name'))
@@ -252,6 +256,23 @@ class OrderResource extends Resource
                                 ->columnSpan(1)
                                 ->prefix('Rp. ', true)
                                 ->currencyMask('.', ','),
+                            Select::make('person_id')
+                                ->label(__('custom.person'))
+                                ->required()
+                                ->searchable(['name', 'phone_number'])
+                                ->preload()
+                                ->options(Person::all()->pluck('name', 'id'))
+                                ->getOptionLabelFromRecordUsing(fn (Person $person) => $person->name_with_phone_number)
+                                ->relationship('person', 'name', fn ($query) => $query->orderBy('name', 'asc'))
+                                ->createOptionForm([
+                                    TextInput::make('name')->required(),
+                                    TextInput::make('phone_number')->required()->unique()->numeric()
+                                ])
+                                ->editOptionForm([
+                                    TextInput::make('name')->required(),
+                                    TextInput::make('phone_number')->required()->unique(ignoreRecord: true)->numeric()
+                                ])
+                                ->columnSpan(2),
                         ])->afterStateUpdated(function (Get $get, Set $set) {
                             $class = new OrderResource();
                             $class->triggerTotalBill($get, $set);

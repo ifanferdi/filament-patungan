@@ -24,6 +24,17 @@ class ViewOrder extends ViewRecord
 {
     protected static string $resource = OrderResource::class;
 
+    public function mount(int|string $record): void
+    {
+        $this->record = $this->getModel()::with('author.payments')->withCount('details_person')->findOrFail($record);
+
+        $this->authorizeAccess();
+
+        if (!$this->hasInfolist()) {
+            $this->fillForm();
+        }
+    }
+
     protected function authorizeAccess(): void
     {
         if (Route::is('filament.admin.resources.orders.view')) {
@@ -56,7 +67,7 @@ class ViewOrder extends ViewRecord
                         ->success()
                         ->send();
                 })
-                ->hidden(fn (Order $record) => $record->details_unpaid()->count() === 0),
+                ->hidden(fn (Order $record) => $record->unpaid_count === 0),
             Actions\EditAction::make()->color(Color::Blue),
             Actions\DeleteAction::make(),
             Actions\ForceDeleteAction::make(),
@@ -115,8 +126,7 @@ class ViewOrder extends ViewRecord
                             ->label(__('custom.preferred_payment'))
                             ->inlineLabel()
                             ->copyable()
-                            ->copyableState(fn (Model $record
-                            ): string => $record->author?->preferredPayment()?->account_number ?? '-')
+                            ->copyableState(fn (Model $record): string => $record->author?->preferredPayment()?->account_number ?? '-')
                             ->copyMessage('Copied!')
                             ->weight('bold')
                             ->columnSpan(1)
@@ -146,7 +156,7 @@ class ViewOrder extends ViewRecord
                 ->columns(3),
             Section::make(__('custom.order_list'))
                 ->schema([
-                    Livewire::make(OrderListTableComponent::class, ['id' => $this->record->id])
+                    Livewire::make(OrderListTableComponent::class, ['record' => $this->record])
                 ])
                 ->collapsible()
         ]);

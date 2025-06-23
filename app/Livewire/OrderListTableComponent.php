@@ -4,16 +4,17 @@ namespace App\Livewire;
 
 use App\Models\Order;
 use App\Models\OrderDetail;
-use Filament\Tables\Actions\Action;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -22,23 +23,27 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
     use InteractsWithTable;
     use InteractsWithForms;
 
-    public int $id;
+    public Model $record;
 
-    public function mount($id): void
+    public function mount($record): void
     {
-        $this->id = $id;
+        $this->record = $record;
     }
 
     public function table(Table $table): Table
     {
         return $table
             ->striped()
-            ->query(OrderDetail::where('order_id', $this->id))
+            ->query(OrderDetail::with(['person', 'order'])->where('order_id', $this->record->id))
             ->columns([
                 TextColumn::make('#')
+                    ->width('50px')
+                    ->alignCenter()
                     ->rowIndex(),
                 CheckboxColumn::make('is_paid')
                     ->label(__('custom.is_paid'))
+                    ->width('50px')
+                    ->alignCenter()
                     ->disabled(fn ($record) => Auth::id() !== $record->order->author_id)
                     ->afterStateUpdated(function ($record, $state) {
                         $order = Order::select(['id'])
@@ -58,6 +63,11 @@ class OrderListTableComponent extends Component implements HasTable, HasForms
                     }),
                 TextColumn::make('name')
                     ->label('Product Name'),
+                TextColumn::make('person')
+                    ->label('Person')
+                    // ->counts('person')
+                    ->visible(fn () => $this->record->details_person_count > 0)
+                    ->formatStateUsing(fn (Model $record): string => $record->person->name_with_phone_number),
                 TextColumn::make('final_price')
                     ->width('100px')
                     ->money('IDR. ', locale: 'id')
